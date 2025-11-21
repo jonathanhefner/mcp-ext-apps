@@ -28,7 +28,7 @@
     "start:sandbox-proxy": "python3 sandbox_proxy.py",
     "start": "npm run build && npm run start:example-server",
     "start:dev": "NODE_ENV=development npm start",
-    "build": "tsc && tsx build.ts",
+    "build": "bun build.bun.ts",
     "prepare": "npm run build",
     "prettier:base-cmd": "prettier -u --ignore-path ./.gitignore --ignore-path ./.prettierignore",
     "prettier": "yarn prettier:base-cmd \"$(pwd)/**/*.{js,jsx,ts,tsx,mjs,json,md,yml,yaml}\" --check",
@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.1",
+    "bun": "^1.3.2",
     "esbuild": "~0.19.10",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
