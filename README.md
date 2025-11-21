@@ -1,6 +1,8 @@
 # @modelcontextprotocol/ext-apps
 
-MCP Extensions Apps SDK.
+This repo contains the SDK and [specification](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx) for MCP Apps Extension ([SEP-1865](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1865)).
+
+MCP Apps are a standard inspired by [OpenAI's Apps SDK](https://developers.openai.com/apps-sdk/) and [MCP-UI](https://mcpui.dev/) to allow MCP Servers to display interactive UI elements in conversational MCP clients / chatbots.
 
 ## Installation
 
