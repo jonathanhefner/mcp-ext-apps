@@ -4,11 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "rm -rf dist && VITE_ENTRY=ui-raw vite build && VITE_ENTRY=ui-vanilla vite build && VITE_ENTRY=ui-react vite build",
-    "preview": "vite preview",
+    "build:uis": "rm -rf dist && concurrently 'UI=ui-raw.html vite build' 'UI=ui-vanilla.html vite build' 'UI=ui-react.html vite build'",
     "server": "bun server.ts",
-    "start": "npm run build && npm run server"
+    "start": "npm run build:uis && npm run server"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "../..",
@@ -23,6 +21,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "typescript": "^5.7.2",

@@ -280,7 +280,6 @@ app.delete("/mcp", async (req: Request, res: Response) => {
 
 app.listen(MCP_PORT, () => {
   console.log(`MCP Server listening on http://localhost:${MCP_PORT}/mcp`);
-  console.log(`  Tools: create-ui-vanilla, create-ui-react, get-weather`);
 });
 
 process.on("SIGINT", async () => {
