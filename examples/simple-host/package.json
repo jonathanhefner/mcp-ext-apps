@@ -6,7 +6,7 @@
   "scripts": {
     "start:server": "tsx server.ts",
     "start:mcp-server": "cd ../simple-server && npm install && npm run start",
-    "build": "concurrently 'INPUT=example-host.html vite build' 'INPUT=example-host-react.html vite build' 'INPUT=sandbox.html vite build'",
+    "build": "concurrently 'INPUT=example-host-vanilla.html vite build' 'INPUT=example-host-react.html vite build' 'INPUT=sandbox.html vite build'",
     "server": "bun server.ts",
     "start": "NODE_ENV=development npm run build && concurrently 'npm run start:server' 'npm run start:mcp-server'"
   },
