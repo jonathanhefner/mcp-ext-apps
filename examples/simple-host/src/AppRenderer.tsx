@@ -19,10 +19,6 @@ import {
   setupSandboxProxyIframe,
 } from "./app-host-utils";
 
-type RequestExtra = Parameters<
-  Parameters<AppBridge["setRequestHandler"]>[1]
->[1];
-
 /**
  * Props for the AppRenderer component.
  */
