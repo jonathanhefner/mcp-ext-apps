@@ -12,6 +12,8 @@ import {
   ListResourcesResultSchema,
   ListResourceTemplatesRequestSchema,
   ListResourceTemplatesResultSchema,
+  LoggingMessageNotification,
+  LoggingMessageNotificationSchema,
   Notification,
   PingRequest,
   PingRequestSchema,
@@ -40,6 +42,12 @@ import {
   McpUiInitializeRequest,
   McpUiInitializeRequestSchema,
   McpUiInitializeResult,
+  McpUiMessageRequest,
+  McpUiMessageRequestSchema,
+  McpUiMessageResult,
+  McpUiOpenLinkRequest,
+  McpUiOpenLinkRequestSchema,
+  McpUiOpenLinkResult,
   McpUiResourceTeardownRequest,
   McpUiResourceTeardownResultSchema,
   McpUiSandboxProxyReadyNotification,
@@ -99,6 +107,42 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
   ) {
     this.setNotificationHandler(McpUiInitializedNotificationSchema, (n) =>
       callback(n.params),
+    );
+  }
+  set onmessage(
+    callback: (
+      params: McpUiMessageRequest["params"],
+      extra: RequestExtra,
+    ) => Promise<McpUiMessageResult>,
+  ) {
+    this.setRequestHandler(
+      McpUiMessageRequestSchema,
+      async (request, extra) => {
+        return callback(request.params, extra);
+      },
+    );
+  }
+  set onopenlink(
+    callback: (
+      params: McpUiOpenLinkRequest["params"],
+      extra: RequestExtra,
+    ) => Promise<McpUiOpenLinkResult>,
+  ) {
+    this.setRequestHandler(
+      McpUiOpenLinkRequestSchema,
+      async (request, extra) => {
+        return callback(request.params, extra);
+      },
+    );
+  }
+  set onloggingmessage(
+    callback: (params: LoggingMessageNotification["params"]) => void,
+  ) {
+    this.setNotificationHandler(
+      LoggingMessageNotificationSchema,
+      async (notification) => {
+        callback(notification.params);
+      },
     );
   }
 
