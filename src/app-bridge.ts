@@ -262,7 +262,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
    * adjust the iframe container dimensions based on the Guest UI's content.
    *
    * Note: This is for Guest UI → Host communication. To notify the Guest UI of
-   * host viewport changes, use {@link App.sendSizeChange}.
+   * host viewport changes, use {@link app.App.sendSizeChange}.
    *
    * @example
    * ```typescript
@@ -275,7 +275,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
    * ```
    *
    * @see {@link McpUiSizeChangeNotification} for the notification type
-   * @see {@link App.sendSizeChange} for Host → Guest UI size notifications
+   * @see {@link app.App.sendSizeChange} for Host → Guest UI size notifications
    */
   set onsizechange(
     callback: (params: McpUiSizeChangeNotification["params"]) => void,

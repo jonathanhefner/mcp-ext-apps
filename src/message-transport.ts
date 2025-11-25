@@ -40,8 +40,8 @@ import {
  * await bridge.connect(transport);
  * ```
  *
- * @see {@link App.connect} for Guest UI usage
- * @see {@link AppBridge.connect} for Host usage
+ * @see {@link app.App.connect} for Guest UI usage
+ * @see {@link app-bridge.AppBridge.connect} for Host usage
  */
 export class PostMessageTransport implements Transport {
   private messageListener: (

@@ -49,7 +49,7 @@ export const LATEST_PROTOCOL_VERSION = "2025-11-21";
  * Sent from the Guest UI to the Host when requesting to open an external link.
  * The host may deny the request based on user preferences or security policy.
  *
- * @see {@link App.sendOpenLink} for the method that sends this request
+ * @see {@link app.App.sendOpenLink} for the method that sends this request
  */
 export interface McpUiOpenLinkRequest {
   method: "ui/open-link";
@@ -112,7 +112,7 @@ export const McpUiOpenLinkResultSchema: z.ZodType<McpUiOpenLinkResult> =
  * conversation thread. This enables interactive apps to communicate with the user
  * through the host's chat interface.
  *
- * @see {@link App.sendMessage} for the method that sends this request
+ * @see {@link app.App.sendMessage} for the method that sends this request
  */
 export interface McpUiMessageRequest {
   method: "ui/message";
@@ -252,14 +252,14 @@ type _VerifySandboxResourceReadyNotification = VerifySchemaMatches<
  *
  * **Guest UI → Host**: Sent by the Guest UI when its rendered content size changes,
  * typically using ResizeObserver. This helps the host adjust the iframe container.
- * If {@link App} is configured with `autoResize: true` (default), this is sent
+ * If {@link app.App} is configured with `autoResize: true` (default), this is sent
  * automatically.
  *
  * **Host → Guest UI**: Sent by the Host when the viewport size changes (e.g.,
  * window resize, orientation change). This allows the Guest UI to adjust its layout.
  *
- * @see {@link App.sendSizeChange} for the method to send this from Guest UI
- * @see {@link App.setupSizeChangeNotifications} for automatic size reporting
+ * @see {@link app.App.sendSizeChange} for the method to send this from Guest UI
+ * @see {@link app.App.setupSizeChangeNotifications} for automatic size reporting
  */
 export interface McpUiSizeChangeNotification {
   method: "ui/notifications/size-change";
@@ -578,7 +578,7 @@ type _VerifyHostContextChangedNotification = VerifySchemaMatches<
  * The host SHOULD wait for the response before unmounting the iframe to prevent
  * data loss.
  *
- * @see {@link AppBridge.sendResourceTeardown} for the host method that sends this
+ * @see {@link app-bridge.AppBridge.sendResourceTeardown} for the host method that sends this
  */
 export interface McpUiResourceTeardownRequest {
   method: "ui/resource-teardown";
@@ -636,7 +636,7 @@ export const McpUiResourceTeardownResultSchema: z.ZodType<McpUiResourceTeardownR
 export interface McpUiHostCapabilities {
   /** Experimental features (structure TBD) */
   experimental?: {};
-  /** Host supports opening external URLs via {@link App.sendOpenLink} */
+  /** Host supports opening external URLs via {@link app.App.sendOpenLink} */
   openLinks?: {};
   /** Host can proxy tool calls to the MCP server */
   serverTools?: {
@@ -648,7 +648,7 @@ export interface McpUiHostCapabilities {
     /** Host supports resources/list_changed notifications */
     listChanged?: boolean;
   };
-  /** Host accepts log messages via {@link App.sendLog} */
+  /** Host accepts log messages via {@link app.App.sendLog} */
   logging?: {};
 }
 
@@ -726,7 +726,7 @@ export const McpUiAppCapabilitiesSchema: z.ZodType<McpUiAppCapabilities> =
  *
  * This replaces the custom iframe-ready pattern used in pre-SEP MCP-UI.
  *
- * @see {@link App.connect} for the method that sends this request
+ * @see {@link app.App.connect} for the method that sends this request
  */
 export interface McpUiInitializeRequest {
   method: "ui/initialize";
@@ -802,7 +802,7 @@ export const McpUiInitializeResultSchema: z.ZodType<McpUiInitializeResult> =
  * {@link McpUiInitializeResult} and completing any setup. The host waits for this
  * notification before sending tool input and other data to the Guest UI.
  *
- * @see {@link App.connect} for the method that sends this notification
+ * @see {@link app.App.connect} for the method that sends this notification
  */
 export interface McpUiInitializedNotification {
   method: "ui/notifications/initialized";
