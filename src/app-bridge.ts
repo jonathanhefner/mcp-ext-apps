@@ -12,7 +12,12 @@ import {
   ListResourcesResultSchema,
   ListResourceTemplatesRequestSchema,
   ListResourceTemplatesResultSchema,
+  ReadResourceRequestSchema,
+  ReadResourceResultSchema,
+  LoggingMessageNotification,
+  LoggingMessageNotificationSchema,
   Notification,
+  PingRequest,
   PingRequestSchema,
   PromptListChangedNotificationSchema,
   ResourceListChangedNotificationSchema,
@@ -34,12 +39,22 @@ import {
   LATEST_PROTOCOL_VERSION,
   McpUiAppCapabilities,
   McpUiHostCapabilities,
+  McpUiInitializedNotification,
   McpUiInitializedNotificationSchema,
   McpUiInitializeRequest,
   McpUiInitializeRequestSchema,
   McpUiInitializeResult,
+  McpUiMessageRequest,
+  McpUiMessageRequestSchema,
+  McpUiMessageResult,
+  McpUiOpenLinkRequest,
+  McpUiOpenLinkRequestSchema,
+  McpUiOpenLinkResult,
   McpUiResourceTeardownRequest,
   McpUiResourceTeardownResultSchema,
+  McpUiSandboxProxyReadyNotification,
+  McpUiSandboxProxyReadyNotificationSchema,
+  McpUiSizeChangeNotificationSchema,
 } from "./types";
 export * from "./types";
 export { PostMessageTransport } from "./message-transport";
@@ -56,6 +71,10 @@ export type HostOptions = ProtocolOptions;
  * Hosts don't need to manage protocol versions manually.
  */
 export const SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION];
+
+type RequestExtra = Parameters<
+  Parameters<AppBridge["setRequestHandler"]>[1]
+>[1];
 
 /**
  * Host-side bridge for communicating with a single Guest UI (App).
@@ -117,22 +136,6 @@ export const SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION];
  * ```
  */
 export class AppBridge extends Protocol<Request, Notification, Result> {
-  /**
-   * Called when the Guest UI completes initialization.
-   *
-   * Set this callback to be notified when the Guest UI has finished its
-   * initialization handshake and is ready to receive tool input and other data.
-   *
-   * @example
-   * ```typescript
-   * bridge.oninitialized = () => {
-   *   console.log("Guest UI ready");
-   *   bridge.sendToolInput({ arguments: toolArgs });
-   * };
-   * ```
-   */
-  oninitialized?: () => void;
-
   private _appCapabilities?: McpUiAppCapabilities;
 
   /**
@@ -163,14 +166,90 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     this.setRequestHandler(McpUiInitializeRequestSchema, (request) =>
       this._oninitialize(request),
     );
-    this.setNotificationHandler(McpUiInitializedNotificationSchema, () =>
-      this.oninitialized?.(),
-    );
 
-    this.setRequestHandler(PingRequestSchema, (request) => {
-      console.log("Received ping:", request.params);
+    this.setRequestHandler(PingRequestSchema, (request, extra) => {
+      this.onping?.(request.params, extra);
       return {};
     });
+  }
+
+  onping?: (params: PingRequest["params"], extra: RequestExtra) => void;
+
+  set onsizechange(
+    callback: (params: McpUiSizeChangeNotification["params"]) => void,
+  ) {
+    this.setNotificationHandler(McpUiSizeChangeNotificationSchema, (n) =>
+      callback(n.params),
+    );
+  }
+
+  set onsandboxready(
+    callback: (params: McpUiSandboxProxyReadyNotification["params"]) => void,
+  ) {
+    this.setNotificationHandler(McpUiSandboxProxyReadyNotificationSchema, (n) =>
+      callback(n.params),
+    );
+  }
+
+  /**
+   * Called when the Guest UI completes initialization.
+   *
+   * Set this callback to be notified when the Guest UI has finished its
+   * initialization handshake and is ready to receive tool input and other data.
+   *
+   * @example
+   * ```typescript
+   * bridge.oninitialized = () => {
+   *   console.log("Guest UI ready");
+   *   bridge.sendToolInput({ arguments: toolArgs });
+   * };
+   * ```
+   */
+  set oninitialized(
+    callback: (params: McpUiInitializedNotification["params"]) => void,
+  ) {
+    this.setNotificationHandler(McpUiInitializedNotificationSchema, (n) =>
+      callback(n.params),
+    );
+  }
+
+  set onmessage(
+    callback: (
+      params: McpUiMessageRequest["params"],
+      extra: RequestExtra,
+    ) => Promise<McpUiMessageResult>,
+  ) {
+    this.setRequestHandler(
+      McpUiMessageRequestSchema,
+      async (request, extra) => {
+        return callback(request.params, extra);
+      },
+    );
+  }
+
+  set onopenlink(
+    callback: (
+      params: McpUiOpenLinkRequest["params"],
+      extra: RequestExtra,
+    ) => Promise<McpUiOpenLinkResult>,
+  ) {
+    this.setRequestHandler(
+      McpUiOpenLinkRequestSchema,
+      async (request, extra) => {
+        return callback(request.params, extra);
+      },
+    );
+  }
+
+  set onloggingmessage(
+    callback: (params: LoggingMessageNotification["params"]) => void,
+  ) {
+    this.setNotificationHandler(
+      LoggingMessageNotificationSchema,
+      async (notification) => {
+        callback(notification.params);
+      },
+    );
   }
 
   /**
@@ -448,6 +527,10 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
       this.forwardRequest(
         ListResourceTemplatesRequestSchema,
         ListResourceTemplatesResultSchema,
+      );
+      this.forwardRequest(
+        ReadResourceRequestSchema,
+        ReadResourceResultSchema,
       );
       if (serverCapabilities.resources.listChanged) {
         this.forwardNotification(ResourceListChangedNotificationSchema);

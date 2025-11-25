@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:uis": "rm -rf dist && concurrently 'UI=ui-raw.html vite build' 'UI=ui-vanilla.html vite build' 'UI=ui-react.html vite build'",
+    "build": "concurrently 'INPUT=ui-raw.html vite build' 'INPUT=ui-vanilla.html vite build' 'INPUT=ui-react.html vite build'",
     "server": "bun server.ts",
-    "start": "npm run build:uis && npm run server"
+    "start": "npm run build && npm run server"
   },
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "../..",

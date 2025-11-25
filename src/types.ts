@@ -82,7 +82,7 @@ type _VerifyOpenLinkRequest = VerifySchemaMatches<
  * @see {@link McpUiOpenLinkRequest}
  */
 export interface McpUiOpenLinkResult {
-  isError: boolean;
+  isError?: boolean;
 }
 
 /**
@@ -90,7 +90,7 @@ export interface McpUiOpenLinkResult {
  * @internal
  */
 export const McpUiOpenLinkResultSchema: z.ZodType<McpUiOpenLinkResult> = z.object({
-  isError: z.boolean(),
+  isError: z.boolean().optional(),
 });
 
 /**
@@ -139,7 +139,7 @@ type _VerifyMessageRequest = VerifySchemaMatches<
  * @see {@link McpUiMessageRequest}
  */
 export interface McpUiMessageResult {
-  isError: boolean;
+  isError?: boolean;
 }
 
 /**
@@ -147,7 +147,7 @@ export interface McpUiMessageResult {
  * @internal
  */
 export const McpUiMessageResultSchema: z.ZodType<McpUiMessageResult> = z.object({
-  isError: z.boolean(),
+  isError: z.boolean().optional(),
 });
 
 // McpUiIframeReadyNotification removed - replaced by standard MCP initialization
@@ -777,7 +777,7 @@ export interface McpUiInitializedNotification {
  */
 export const McpUiInitializedNotificationSchema = z.object({
   method: z.literal("ui/notifications/initialized"),
-  params: z.object({}),
+  params: z.object({}).optional(),
 });
 
 /** @internal - Compile-time verification that schema matches interface */

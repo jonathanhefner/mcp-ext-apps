@@ -1,7 +1,7 @@
 {
   "homepage": "https://gist.github.com/a9603ba2d6757d6038ce066eded4c354",
   "name": "@modelcontextprotocol/ext-apps",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Hey",
   "type": "module",
   "main": "./dist/src/app.js",
@@ -23,11 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "start:example-server0": "bun examples/example-server.ts",
-    "start:example-server": "cd ../openai-apps-sdk-examples && concurrently \"npm run serve\" \"cd pizzaz_server_node && PORT=3001 npm start\"",
-    "start:sandbox-proxy": "python3 sandbox_proxy.py",
-    "start": "npm run build && npm run start:example-server",
-    "start:dev": "NODE_ENV=development npm start",
+    "start": "cd examples/simple-host && npm i && npm start",
     "build": "bun build.bun.ts",
     "prepare": "npm run build",
     "docs": "typedoc",
