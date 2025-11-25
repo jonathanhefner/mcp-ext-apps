@@ -189,8 +189,6 @@ export class App extends Protocol<Request, Notification, Result> {
    * @param _capabilities - Features and capabilities this app provides
    * @param options - Configuration options including autoResize behavior
    *
-   * @see {@link AppOptions} for available configuration options
-   *
    * @example
    * ```typescript
    * const app = new App(
@@ -263,7 +261,6 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```
    *
    * @see {@link connect} for the initialization handshake
-   * @see {@link Implementation} from @modelcontextprotocol/sdk for the type
    */
   getHostVersion(): Implementation | undefined {
     return this._hostInfo;
@@ -455,8 +452,6 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```
    *
    * @see {@link setRequestHandler} for the underlying method
-   * @see {@link CallToolRequest} for the request structure
-   * @see {@link CallToolResult} for the expected return type
    */
   set oncalltool(
     callback: (
@@ -497,7 +492,6 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```
    *
    * @see {@link setRequestHandler} for the underlying method
-   * @see {@link ListToolsRequest} for the request structure
    * @see {@link oncalltool} for handling tool execution
    */
   set onlisttools(
@@ -582,9 +576,6 @@ export class App extends Protocol<Request, Notification, Result> {
    *   console.error("Tool call failed:", error);
    * }
    * ```
-   *
-   * @see {@link CallToolRequest} for request parameter structure
-   * @see {@link CallToolResult} for response structure
    */
   async callServerTool(
     params: CallToolRequest["params"],
@@ -653,8 +644,6 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```
    *
    * @returns Promise that resolves when the log notification is sent
-   *
-   * @see {@link LoggingMessageNotification} for notification structure
    */
   sendLog(params: LoggingMessageNotification["params"]) {
     return this.notification(<LoggingMessageNotification>{
