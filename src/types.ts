@@ -89,6 +89,11 @@ export interface McpUiOpenLinkResult {
    * user cancellation, or system error). False or undefined indicates success.
    */
   isError?: boolean;
+  /**
+   * Index signature required for MCP SDK `Protocol` class compatibility.
+   * Note: The schema intentionally omits this to enforce strict validation.
+   */
+  [key: string]: unknown;
 }
 
 /**
@@ -151,6 +156,11 @@ export interface McpUiMessageResult {
    * indicates the message was accepted.
    */
   isError?: boolean;
+  /**
+   * Index signature required for MCP SDK `Protocol` class compatibility.
+   * Note: The schema intentionally omits this to enforce strict validation.
+   */
+  [key: string]: unknown;
 }
 
 /**

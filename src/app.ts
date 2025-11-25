@@ -44,6 +44,24 @@ import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 export { PostMessageTransport } from "./message-transport.js";
 export * from "./types";
 
+/**
+ * Metadata key for associating a resource URI with a tool call.
+ *
+ * MCP servers can include this key in tool call metadata to indicate
+ * which UI resource should be displayed for the tool. Hosts use this
+ * to resolve and render the appropriate App for the tool invocation.
+ *
+ * @example Server-side tool definition with resource URI
+ * ```typescript
+ * // In your MCP server's tool handler:
+ * return {
+ *   content: [{ type: "text", text: "Result" }],
+ *   _meta: {
+ *     [RESOURCE_URI_META_KEY]: "ui://weather/forecast"
+ *   }
+ * };
+ * ```
+ */
 export const RESOURCE_URI_META_KEY = "ui/resourceUri";
 
 /**
@@ -179,10 +197,52 @@ export class App extends Protocol<Request, Notification, Result> {
     });
   }
 
+  /**
+   * Get the host's capabilities discovered during initialization.
+   *
+   * Returns the capabilities that the host advertised during the
+   * {@link connect} handshake. Returns `undefined` if called before
+   * connection is established.
+   *
+   * @returns Host capabilities, or `undefined` if not yet connected
+   *
+   * @example Check host capabilities after connection
+   * ```typescript
+   * await app.connect(transport);
+   * const caps = app.getHostCapabilities();
+   * if (caps?.tools) {
+   *   console.log("Host supports tools");
+   * }
+   * ```
+   *
+   * @see {@link connect} for the initialization handshake
+   * @see {@link McpUiHostCapabilities} for the capabilities structure
+   */
   getHostCapabilities(): McpUiHostCapabilities | undefined {
     return this._hostCapabilities;
   }
 
+  /**
+   * Get the host's implementation info discovered during initialization.
+   *
+   * Returns the host's name and version as advertised during the
+   * {@link connect} handshake. Returns `undefined` if called before
+   * connection is established.
+   *
+   * @returns Host implementation info, or `undefined` if not yet connected
+   *
+   * @example Log host information after connection
+   * ```typescript
+   * await app.connect(transport);
+   * const host = app.getHostVersion();
+   * if (host) {
+   *   console.log(`Connected to ${host.name} v${host.version}`);
+   * }
+   * ```
+   *
+   * @see {@link connect} for the initialization handshake
+   * @see {@link Implementation} from @modelcontextprotocol/sdk for the type
+   */
   getHostVersion(): Implementation | undefined {
     return this._hostInfo;
   }
@@ -333,6 +393,37 @@ export class App extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Convenience handler for tool call requests from the host.
+   *
+   * Set this property to register a handler that will be called when the host
+   * requests this app to execute a tool. This enables apps to provide their own
+   * tools that can be called by the host or LLM.
+   *
+   * The app must declare tool capabilities in the constructor to use this handler.
+   *
+   * This setter is a convenience wrapper around `setRequestHandler()` that
+   * automatically handles the request schema and extracts the params for you.
+   *
+   * @param callback - Async function that executes the tool and returns the result
+   *
+   * @throws {Error} If app did not declare tool capabilities
+   *
+   * @example Handle tool calls from the host
+   * ```typescript
+   * app.oncalltool = async (params, extra) => {
+   *   if (params.name === "calculate") {
+   *     const result = evaluate(params.arguments?.expression);
+   *     return { content: [{ type: "text", text: String(result) }] };
+   *   }
+   *   throw new Error(`Unknown tool: ${params.name}`);
+   * };
+   * ```
+   *
+   * @see {@link setRequestHandler} for the underlying method
+   * @see {@link CallToolRequest} for the request structure
+   * @see {@link CallToolResult} for the expected return type
+   */
   set oncalltool(
     callback: (
       params: CallToolRequest["params"],
@@ -344,6 +435,35 @@ export class App extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Convenience handler for listing available tools.
+   *
+   * Set this property to register a handler that will be called when the host
+   * requests a list of tools this app provides. This enables dynamic tool
+   * discovery by the host or LLM.
+   *
+   * The app must declare tool capabilities in the constructor to use this handler.
+   *
+   * This setter is a convenience wrapper around `setRequestHandler()` that
+   * automatically handles the request schema and extracts the params for you.
+   *
+   * @param callback - Async function that returns the list of available tools
+   *
+   * @throws {Error} If app did not declare tool capabilities
+   *
+   * @example Return available tools
+   * ```typescript
+   * app.onlisttools = async (params, extra) => {
+   *   return {
+   *     tools: ["calculate", "convert", "format"]
+   *   };
+   * };
+   * ```
+   *
+   * @see {@link setRequestHandler} for the underlying method
+   * @see {@link ListToolsRequest} for the request structure
+   * @see {@link oncalltool} for handling tool execution
+   */
   set onlisttools(
     callback: (
       params: ListToolsRequest["params"],
