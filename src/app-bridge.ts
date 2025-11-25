@@ -81,7 +81,7 @@ export const SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION];
  *
  * @internal
  */
-type RequestExtra = Parameters<
+type RequestHandlerExtra = Parameters<
   Parameters<AppBridge["setRequestHandler"]>[1]
 >[1];
 
@@ -146,6 +146,7 @@ type RequestExtra = Parameters<
  */
 export class AppBridge extends Protocol<Request, Notification, Result> {
   private _appCapabilities?: McpUiAppCapabilities;
+  private _appInfo?: Implementation;
 
   /**
    * Create a new AppBridge instance.
@@ -182,6 +183,14 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     });
   }
 
+  getAppCapabilities(): McpUiAppCapabilities | undefined {
+    return this._appCapabilities;
+  }
+
+  getAppVersion(): Implementation | undefined {
+    return this._appInfo;
+  }
+
   /**
    * Optional handler for ping requests from the Guest UI.
    *
@@ -204,7 +213,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
    *
    * @see https://modelcontextprotocol.io for standard MCP ping specification
    */
-  onping?: (params: PingRequest["params"], extra: RequestExtra) => void;
+  onping?: (params: PingRequest["params"], extra: RequestHandlerExtra) => void;
 
   /**
    * Register a handler for size change notifications from the Guest UI.
@@ -334,7 +343,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
   set onmessage(
     callback: (
       params: McpUiMessageRequest["params"],
-      extra: RequestExtra,
+      extra: RequestHandlerExtra,
     ) => Promise<McpUiMessageResult>,
   ) {
     this.setRequestHandler(
@@ -391,7 +400,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
   set onopenlink(
     callback: (
       params: McpUiOpenLinkRequest["params"],
-      extra: RequestExtra,
+      extra: RequestHandlerExtra,
     ) => Promise<McpUiOpenLinkResult>,
   ) {
     this.setRequestHandler(
@@ -485,6 +494,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     const requestedVersion = request.params.protocolVersion;
 
     this._appCapabilities = request.params.appCapabilities;
+    this._appInfo = request.params.appInfo;
 
     const protocolVersion = SUPPORTED_PROTOCOL_VERSIONS.includes(
       requestedVersion,
@@ -500,32 +510,6 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
         // TODO
       },
     };
-  }
-
-  /**
-   * Notify the Guest UI of viewport size changes.
-   *
-   * Send this when the host's container/window resizes to allow the Guest UI
-   * to adjust its layout. For example: window resize, orientation change,
-   * panel resize.
-   *
-   * @param params - New viewport dimensions in pixels
-   *
-   * @example
-   * ```typescript
-   * window.addEventListener('resize', () => {
-   *   bridge.sendSizeChange({
-   *     width: container.clientWidth,
-   *     height: container.clientHeight
-   *   });
-   * });
-   * ```
-   */
-  sendSizeChange(params: McpUiSizeChangeNotification["params"]) {
-    return this.notification(<McpUiSizeChangeNotification>{
-      method: "ui/notifications/size-change",
-      params,
-    });
   }
 
   /**
@@ -718,10 +702,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
         ListResourceTemplatesRequestSchema,
         ListResourceTemplatesResultSchema,
       );
-      this.forwardRequest(
-        ReadResourceRequestSchema,
-        ReadResourceResultSchema,
-      );
+      this.forwardRequest(ReadResourceRequestSchema, ReadResourceResultSchema);
       if (serverCapabilities.resources.listChanged) {
         this.forwardNotification(ResourceListChangedNotificationSchema);
       }

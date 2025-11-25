@@ -3,7 +3,6 @@ import {
   JSONRPCMessageSchema,
   MessageExtraInfo,
 } from "@modelcontextprotocol/sdk/types.js";
-import type { RequestHandlerExtra } from "@modelcontextprotocol/sdk/shared/protocol.js";
 import {
   Transport,
   TransportSendOptions,

@@ -6,9 +6,12 @@ import {
 
 import {
   CallToolRequest,
+  CallToolRequestSchema,
   CallToolResult,
   CallToolResultSchema,
   Implementation,
+  ListToolsRequest,
+  ListToolsRequestSchema,
   LoggingMessageNotification,
   Notification,
   PingRequestSchema,
@@ -41,6 +44,8 @@ import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 export { PostMessageTransport } from "./message-transport.js";
 export * from "./types";
 
+export const RESOURCE_URI_META_KEY = "ui/resourceUri";
+
 /**
  * Options for configuring App behavior.
  *
@@ -48,7 +53,7 @@ export * from "./types";
  *
  * @see ProtocolOptions from @modelcontextprotocol/sdk for inherited options
  */
-export type AppOptions = ProtocolOptions & {
+type AppOptions = ProtocolOptions & {
   /**
    * Automatically report size changes to the host using ResizeObserver.
    *
@@ -60,6 +65,10 @@ export type AppOptions = ProtocolOptions & {
    */
   autoResize?: boolean;
 };
+
+type RequestHandlerExtra = Parameters<
+  Parameters<App["setRequestHandler"]>[1]
+>[1];
 
 /**
  * Main class for MCP Apps to communicate with their host.
@@ -170,6 +179,14 @@ export class App extends Protocol<Request, Notification, Result> {
     });
   }
 
+  getHostCapabilities(): McpUiHostCapabilities | undefined {
+    return this._hostCapabilities;
+  }
+
+  getHostVersion(): Implementation | undefined {
+    return this._hostInfo;
+  }
+
   /**
    * Convenience handler for receiving complete tool input from the host.
    *
@@ -211,6 +228,7 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+
   /**
    * Convenience handler for receiving streaming partial tool input from the host.
    *
@@ -241,6 +259,7 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+
   /**
    * Convenience handler for receiving tool execution results from the host.
    *
@@ -276,6 +295,7 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+
   /**
    * Convenience handler for host context changes (theme, viewport, locale, etc.).
    *
@@ -310,6 +330,28 @@ export class App extends Protocol<Request, Notification, Result> {
     this.setNotificationHandler(
       McpUiHostContextChangedNotificationSchema,
       (n) => callback(n.params),
+    );
+  }
+
+  set oncalltool(
+    callback: (
+      params: CallToolRequest["params"],
+      extra: RequestHandlerExtra,
+    ) => Promise<CallToolResult>,
+  ) {
+    this.setRequestHandler(CallToolRequestSchema, (request, extra) =>
+      callback(request.params, extra),
+    );
+  }
+
+  set onlisttools(
+    callback: (
+      params: ListToolsRequest["params"],
+      extra: RequestHandlerExtra,
+    ) => Promise<{ tools: string[] }>,
+  ) {
+    this.setRequestHandler(ListToolsRequestSchema, (request, extra) =>
+      callback(request.params, extra),
     );
   }
 
@@ -536,30 +578,20 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```
    */
   setupSizeChangeNotifications() {
+    let scheduled = false;
     const sendBodySizeChange = () => {
-      let rafId: number | null = null;
-
-      // Debounce using requestAnimationFrame to avoid duplicate messages
-      // when both documentElement and body fire resize events
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
+      if (scheduled) {
+        return;
       }
-      rafId = requestAnimationFrame(() => {
-        const { body, documentElement: html } = document;
-
-        const bodyStyle = getComputedStyle(body);
-        const htmlStyle = getComputedStyle(html);
-
-        const width = body.scrollWidth;
-        const height =
-          body.scrollHeight +
-          (parseFloat(bodyStyle.borderTop) || 0) +
-          (parseFloat(bodyStyle.borderBottom) || 0) +
-          (parseFloat(htmlStyle.borderTop) || 0) +
-          (parseFloat(htmlStyle.borderBottom) || 0);
-
+      scheduled = true;
+      requestAnimationFrame(() => {
+        scheduled = false;
+        const rect = (
+          document.body.parentElement ?? document.body
+        ).getBoundingClientRect();
+        const width = Math.ceil(rect.width);
+        const height = Math.ceil(rect.height);
         this.sendSizeChange({ width, height });
-        rafId = null;
       });
     };
 
