@@ -90,6 +90,18 @@ export type AppOptions = ProtocolOptions & {
  *
  * @see {@link Protocol} from @modelcontextprotocol/sdk for all inherited methods
  *
+ * ## Notification Setters
+ *
+ * For common notifications, the App class provides convenient setter properties
+ * that simplify handler registration:
+ * - `ontoolinput` - Complete tool arguments from host
+ * - `ontoolinputpartial` - Streaming partial tool arguments
+ * - `ontoolresult` - Tool execution results
+ * - `onhostcontextchanged` - Host context changes (theme, viewport, etc.)
+ *
+ * These setters are convenience wrappers around `setNotificationHandler()`.
+ * Both patterns work; use whichever fits your coding style better.
+ *
  * @example Basic usage with PostMessageTransport
  * ```typescript
  * import { App, PostMessageTransport } from '@modelcontextprotocol/ext-apps';
@@ -99,12 +111,16 @@ export type AppOptions = ProtocolOptions & {
  *   {} // capabilities
  * );
  *
- * // Register notification handler before connecting
+ * // Register notification handler using setter (simpler)
+ * app.ontoolinput = (params) => {
+ *   renderWeather(params.arguments);
+ * };
+ *
+ * // OR using inherited setNotificationHandler (more explicit)
  * app.setNotificationHandler(
  *   McpUiToolInputNotificationSchema,
  *   (notification) => {
- *     const args = notification.params.arguments;
- *     renderWeather(args.location);
+ *     renderWeather(notification.params.arguments);
  *   }
  * );
  *
@@ -154,6 +170,40 @@ export class App extends Protocol<Request, Notification, Result> {
     });
   }
 
+  /**
+   * Convenience handler for receiving complete tool input from the host.
+   *
+   * Set this property to register a handler that will be called when the host
+   * sends a tool's complete arguments. This is sent after a tool call begins
+   * and before the tool result is available.
+   *
+   * This setter is a convenience wrapper around `setNotificationHandler()` that
+   * automatically handles the notification schema and extracts the params for you.
+   *
+   * @param callback - Function called with the tool input params
+   *
+   * @example Using the setter (simpler)
+   * ```typescript
+   * app.ontoolinput = (params) => {
+   *   console.log("Tool:", params.arguments);
+   *   renderToolUI(params.arguments);
+   * };
+   * ```
+   *
+   * @example Using setNotificationHandler (more explicit)
+   * ```typescript
+   * app.setNotificationHandler(
+   *   McpUiToolInputNotificationSchema,
+   *   (notification) => {
+   *     console.log("Tool:", notification.params.arguments);
+   *     renderToolUI(notification.params.arguments);
+   *   }
+   * );
+   * ```
+   *
+   * @see {@link setNotificationHandler} for the underlying method
+   * @see {@link McpUiToolInputNotification} for the notification structure
+   */
   set ontoolinput(
     callback: (params: McpUiToolInputNotification["params"]) => void,
   ) {
@@ -161,6 +211,29 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+  /**
+   * Convenience handler for receiving streaming partial tool input from the host.
+   *
+   * Set this property to register a handler that will be called as the host
+   * streams partial tool arguments during tool call initialization. This enables
+   * progressive rendering of tool arguments before they're complete.
+   *
+   * This setter is a convenience wrapper around `setNotificationHandler()` that
+   * automatically handles the notification schema and extracts the params for you.
+   *
+   * @param callback - Function called with each partial tool input update
+   *
+   * @example Progressive rendering of tool arguments
+   * ```typescript
+   * app.ontoolinputpartial = (params) => {
+   *   updateToolUIProgressively(params.partialArguments);
+   * };
+   * ```
+   *
+   * @see {@link setNotificationHandler} for the underlying method
+   * @see {@link McpUiToolInputPartialNotification} for the notification structure
+   * @see {@link ontoolinput} for the complete tool input handler
+   */
   set ontoolinputpartial(
     callback: (params: McpUiToolInputPartialNotification["params"]) => void,
   ) {
@@ -168,6 +241,34 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+  /**
+   * Convenience handler for receiving tool execution results from the host.
+   *
+   * Set this property to register a handler that will be called when the host
+   * sends the result of a tool execution. This is sent after the tool completes
+   * on the MCP server, allowing your app to display the results or update its state.
+   *
+   * This setter is a convenience wrapper around `setNotificationHandler()` that
+   * automatically handles the notification schema and extracts the params for you.
+   *
+   * @param callback - Function called with the tool result
+   *
+   * @example Display tool execution results
+   * ```typescript
+   * app.ontoolresult = (params) => {
+   *   if (params.content) {
+   *     displayToolOutput(params.content);
+   *   }
+   *   if (params.isError) {
+   *     showError("Tool execution failed");
+   *   }
+   * };
+   * ```
+   *
+   * @see {@link setNotificationHandler} for the underlying method
+   * @see {@link McpUiToolResultNotification} for the notification structure
+   * @see {@link ontoolinput} for the initial tool input handler
+   */
   set ontoolresult(
     callback: (params: McpUiToolResultNotification["params"]) => void,
   ) {
@@ -175,6 +276,34 @@ export class App extends Protocol<Request, Notification, Result> {
       callback(n.params),
     );
   }
+  /**
+   * Convenience handler for host context changes (theme, viewport, locale, etc.).
+   *
+   * Set this property to register a handler that will be called when the host's
+   * context changes, such as theme switching (light/dark), viewport size changes,
+   * locale changes, or other environmental updates. Apps should respond by
+   * updating their UI accordingly.
+   *
+   * This setter is a convenience wrapper around `setNotificationHandler()` that
+   * automatically handles the notification schema and extracts the params for you.
+   *
+   * @param callback - Function called with the updated host context
+   *
+   * @example Respond to theme changes
+   * ```typescript
+   * app.onhostcontextchanged = (params) => {
+   *   if (params.theme === "dark") {
+   *     document.body.classList.add("dark-theme");
+   *   } else {
+   *     document.body.classList.remove("dark-theme");
+   *   }
+   * };
+   * ```
+   *
+   * @see {@link setNotificationHandler} for the underlying method
+   * @see {@link McpUiHostContextChangedNotification} for the notification structure
+   * @see {@link McpUiHostContext} for the full context structure
+   */
   set onhostcontextchanged(
     callback: (params: McpUiHostContextChangedNotification["params"]) => void,
   ) {

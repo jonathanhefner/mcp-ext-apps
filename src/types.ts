@@ -79,9 +79,15 @@ type _VerifyOpenLinkRequest = VerifySchemaMatches<
 /**
  * Result from opening an external URL.
  *
+ * The host returns this result after attempting to open the requested URL.
+ *
  * @see {@link McpUiOpenLinkRequest}
  */
 export interface McpUiOpenLinkResult {
+  /**
+   * True if the host failed to open the URL (e.g., due to security policy,
+   * user cancellation, or system error). False or undefined indicates success.
+   */
   isError?: boolean;
 }
 
@@ -139,6 +145,11 @@ type _VerifyMessageRequest = VerifySchemaMatches<
  * @see {@link McpUiMessageRequest}
  */
 export interface McpUiMessageResult {
+  /**
+   * True if the host rejected or failed to deliver the message (e.g., due to
+   * rate limiting, content policy, or system error). False or undefined
+   * indicates the message was accepted.
+   */
   isError?: boolean;
 }
 
@@ -768,7 +779,7 @@ export const McpUiInitializeResultSchema: z.ZodType<McpUiInitializeResult> = z.o
  */
 export interface McpUiInitializedNotification {
   method: "ui/notifications/initialized";
-  params: {};
+  params?: {};
 }
 
 /**

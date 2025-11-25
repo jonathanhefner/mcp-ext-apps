@@ -72,6 +72,15 @@ export type HostOptions = ProtocolOptions;
  */
 export const SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION];
 
+/**
+ * Extra metadata passed to request handlers.
+ *
+ * This type represents the additional context provided by the Protocol class
+ * when handling requests, including abort signals and session information.
+ * It is extracted from the MCP SDK's request handler signature.
+ *
+ * @internal
+ */
 type RequestExtra = Parameters<
   Parameters<AppBridge["setRequestHandler"]>[1]
 >[1];
@@ -173,8 +182,53 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     });
   }
 
+  /**
+   * Optional handler for ping requests from the Guest UI.
+   *
+   * The Guest UI can send standard MCP `ping` requests to verify the connection
+   * is alive. The AppBridge automatically responds with an empty object, but this
+   * handler allows the host to observe or log ping activity.
+   *
+   * Unlike the other handlers which use setters, this is a direct property
+   * assignment. It is optional; if not set, pings are still handled automatically.
+   *
+   * @param params - Empty params object from the ping request
+   * @param extra - Request metadata (abort signal, session info)
+   *
+   * @example
+   * ```typescript
+   * bridge.onping = (params, extra) => {
+   *   console.log("Received ping from Guest UI");
+   * };
+   * ```
+   *
+   * @see https://modelcontextprotocol.io for standard MCP ping specification
+   */
   onping?: (params: PingRequest["params"], extra: RequestExtra) => void;
 
+  /**
+   * Register a handler for size change notifications from the Guest UI.
+   *
+   * The Guest UI sends `ui/notifications/size-change` when its rendered content
+   * size changes, typically via ResizeObserver. Set this callback to dynamically
+   * adjust the iframe container dimensions based on the Guest UI's content.
+   *
+   * Note: This is for Guest UI → Host communication. To notify the Guest UI of
+   * host viewport changes, use {@link sendSizeChange}.
+   *
+   * @example
+   * ```typescript
+   * bridge.onsizechange = ({ width, height }) => {
+   *   if (width && height) {
+   *     iframe.style.width = `${width}px`;
+   *     iframe.style.height = `${height}px`;
+   *   }
+   * };
+   * ```
+   *
+   * @see {@link McpUiSizeChangeNotification} for the notification type
+   * @see {@link sendSizeChange} for Host → Guest UI size notifications
+   */
   set onsizechange(
     callback: (params: McpUiSizeChangeNotification["params"]) => void,
   ) {
@@ -183,6 +237,36 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Register a handler for sandbox proxy ready notifications.
+   *
+   * This is an internal callback used by web-based hosts implementing the
+   * double-iframe sandbox architecture. The sandbox proxy sends
+   * `ui/notifications/sandbox-proxy-ready` after it loads and is ready to receive
+   * HTML content.
+   *
+   * When this fires, the host should call {@link sendSandboxResourceReady} with
+   * the HTML content to load into the inner sandboxed iframe.
+   *
+   * @example
+   * ```typescript
+   * bridge.onsandboxready = () => {
+   *   const resource = await mcpClient.request(
+   *     { method: "resources/read", params: { uri: "ui://my-app" } },
+   *     ReadResourceResultSchema
+   *   );
+   *
+   *   bridge.sendSandboxResourceReady({
+   *     html: resource.contents[0].text,
+   *     sandbox: "allow-scripts"
+   *   });
+   * };
+   * ```
+   *
+   * @internal
+   * @see {@link McpUiSandboxProxyReadyNotification} for the notification type
+   * @see {@link sendSandboxResourceReady} for sending content to the sandbox
+   */
   set onsandboxready(
     callback: (params: McpUiSandboxProxyReadyNotification["params"]) => void,
   ) {
@@ -213,6 +297,40 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Register a handler for message requests from the Guest UI.
+   *
+   * The Guest UI sends `ui/message` requests when it wants to add a message to
+   * the host's chat interface. This enables interactive apps to communicate with
+   * the user through the conversation thread.
+   *
+   * The handler should process the message (add it to the chat) and return a
+   * result indicating success or failure. For security, the host should NOT
+   * return conversation content or follow-up results to prevent information
+   * leakage.
+   *
+   * @param callback - Handler that receives message params and returns a result
+   *   - params.role - Message role (currently only "user" is supported)
+   *   - params.content - Message content blocks (text, image, etc.)
+   *   - extra - Request metadata (abort signal, session info)
+   *   - Returns: Promise<McpUiMessageResult> with optional isError flag
+   *
+   * @example
+   * ```typescript
+   * bridge.onmessage = async ({ role, content }, extra) => {
+   *   try {
+   *     await chatManager.addMessage({ role, content, source: "app" });
+   *     return {}; // Success
+   *   } catch (error) {
+   *     console.error("Failed to add message:", error);
+   *     return { isError: true };
+   *   }
+   * };
+   * ```
+   *
+   * @see {@link McpUiMessageRequest} for the request type
+   * @see {@link McpUiMessageResult} for the result type
+   */
   set onmessage(
     callback: (
       params: McpUiMessageRequest["params"],
@@ -227,6 +345,49 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Register a handler for external link requests from the Guest UI.
+   *
+   * The Guest UI sends `ui/open-link` requests when it wants to open an external
+   * URL in the host's default browser. The handler should validate the URL and
+   * open it according to the host's security policy and user preferences.
+   *
+   * The host MAY:
+   * - Show a confirmation dialog before opening
+   * - Block URLs based on a security policy or allowlist
+   * - Log the request for audit purposes
+   * - Reject the request entirely
+   *
+   * @param callback - Handler that receives URL params and returns a result
+   *   - params.url - URL to open in the host's browser
+   *   - extra - Request metadata (abort signal, session info)
+   *   - Returns: Promise<McpUiOpenLinkResult> with optional isError flag
+   *
+   * @example
+   * ```typescript
+   * bridge.onopenlink = async ({ url }, extra) => {
+   *   if (!isAllowedDomain(url)) {
+   *     console.warn("Blocked external link:", url);
+   *     return { isError: true };
+   *   }
+   *
+   *   const confirmed = await showDialog({
+   *     message: `Open external link?\n${url}`,
+   *     buttons: ["Open", "Cancel"]
+   *   });
+   *
+   *   if (confirmed) {
+   *     window.open(url, "_blank", "noopener,noreferrer");
+   *     return {};
+   *   }
+   *
+   *   return { isError: true };
+   * };
+   * ```
+   *
+   * @see {@link McpUiOpenLinkRequest} for the request type
+   * @see {@link McpUiOpenLinkResult} for the result type
+   */
   set onopenlink(
     callback: (
       params: McpUiOpenLinkRequest["params"],
@@ -241,6 +402,35 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
     );
   }
 
+  /**
+   * Register a handler for logging messages from the Guest UI.
+   *
+   * The Guest UI sends standard MCP `notifications/message` (logging) notifications
+   * to report debugging information, errors, warnings, and other telemetry to the
+   * host. The host can display these in a console, log them to a file, or send
+   * them to a monitoring service.
+   *
+   * This uses the standard MCP logging notification format, not a UI-specific
+   * message type.
+   *
+   * @param callback - Handler that receives logging params
+   *   - params.level - Log level: "debug" | "info" | "notice" | "warning" | "error" | "critical" | "alert" | "emergency"
+   *   - params.logger - Optional logger name/identifier
+   *   - params.data - Log message and optional structured data
+   *
+   * @example
+   * ```typescript
+   * bridge.onloggingmessage = ({ level, logger, data }) => {
+   *   const prefix = logger ? `[${logger}]` : "[Guest UI]";
+   *   console[level === "error" ? "error" : "log"](
+   *     `${prefix} ${level.toUpperCase()}:`,
+   *     data
+   *   );
+   * };
+   * ```
+   *
+   * @see https://modelcontextprotocol.io for standard MCP logging specification
+   */
   set onloggingmessage(
     callback: (params: LoggingMessageNotification["params"]) => void,
   ) {
@@ -479,7 +669,7 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
    * request/notification forwarding based on the MCP server's capabilities.
    * It proxies the following server capabilities to the Guest UI:
    * - Tools (tools/call, tools/list_changed)
-   * - Resources (resources/list, resources/templates/list, resources/list_changed)
+   * - Resources (resources/list, resources/read, resources/templates/list, resources/list_changed)
    * - Prompts (prompts/list, prompts/list_changed)
    *
    * After calling connect, wait for the `oninitialized` callback before sending
