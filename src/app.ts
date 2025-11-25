@@ -47,19 +47,31 @@ export * from "./types";
 /**
  * Metadata key for associating a resource URI with a tool call.
  *
- * MCP servers can include this key in tool call metadata to indicate
- * which UI resource should be displayed for the tool. Hosts use this
- * to resolve and render the appropriate App for the tool invocation.
+ * MCP servers include this key in tool call result metadata to indicate which
+ * UI resource should be displayed for the tool. When hosts receive a tool result
+ * containing this metadata, they resolve and render the corresponding App.
  *
- * @example Server-side tool definition with resource URI
+ * **Note**: This constant is provided for reference. MCP servers set this metadata
+ * in their tool handlers; App developers typically don't need to use it directly.
+ *
+ * @example How MCP servers use this key (server-side, not in Apps)
  * ```typescript
- * // In your MCP server's tool handler:
+ * // In an MCP server's tool handler:
  * return {
  *   content: [{ type: "text", text: "Result" }],
  *   _meta: {
  *     [RESOURCE_URI_META_KEY]: "ui://weather/forecast"
  *   }
  * };
+ * ```
+ *
+ * @example How hosts check for this metadata (host-side)
+ * ```typescript
+ * const result = await mcpClient.callTool({ name: "weather", arguments: {} });
+ * const uiUri = result._meta?.[RESOURCE_URI_META_KEY];
+ * if (uiUri) {
+ *   // Load and display the UI resource
+ * }
  * ```
  */
 export const RESOURCE_URI_META_KEY = "ui/resourceUri";
@@ -98,8 +110,8 @@ type RequestHandlerExtra = Parameters<
  *
  * ## Architecture
  *
- * Guest UIs (Apps) act as MCP clients connecting to the host via PostMessage
- * transport. The host proxies requests to the actual MCP server and forwards
+ * Guest UIs (Apps) act as MCP clients connecting to the host via {@link PostMessageTransport}.
+ * The host proxies requests to the actual MCP server and forwards
  * responses back to the App.
  *
  * ## Lifecycle
@@ -115,7 +127,7 @@ type RequestHandlerExtra = Parameters<
  * - `setRequestHandler()` - Register handlers for requests from host
  * - `setNotificationHandler()` - Register handlers for notifications from host
  *
- * @see {@link Protocol} from @modelcontextprotocol/sdk for all inherited methods
+ * @see Protocol from @modelcontextprotocol/sdk for all inherited methods
  *
  * ## Notification Setters
  *
@@ -131,7 +143,11 @@ type RequestHandlerExtra = Parameters<
  *
  * @example Basic usage with PostMessageTransport
  * ```typescript
- * import { App, PostMessageTransport } from '@modelcontextprotocol/ext-apps';
+ * import {
+ *   App,
+ *   PostMessageTransport,
+ *   McpUiToolInputNotificationSchema
+ * } from '@modelcontextprotocol/ext-apps';
  *
  * const app = new App(
  *   { name: "WeatherApp", version: "1.0.0" },
@@ -140,14 +156,14 @@ type RequestHandlerExtra = Parameters<
  *
  * // Register notification handler using setter (simpler)
  * app.ontoolinput = (params) => {
- *   renderWeather(params.arguments);
+ *   console.log("Tool arguments:", params.arguments);
  * };
  *
  * // OR using inherited setNotificationHandler (more explicit)
  * app.setNotificationHandler(
  *   McpUiToolInputNotificationSchema,
  *   (notification) => {
- *     renderWeather(notification.params.arguments);
+ *     console.log("Tool arguments:", notification.params.arguments);
  *   }
  * );
  *
@@ -210,8 +226,12 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```typescript
    * await app.connect(transport);
    * const caps = app.getHostCapabilities();
-   * if (caps?.tools) {
-   *   console.log("Host supports tools");
+   * if (caps === undefined) {
+   *   console.error("Not connected");
+   *   return;
+   * }
+   * if (caps.serverTools) {
+   *   console.log("Host supports server tool calls");
    * }
    * ```
    *
@@ -235,9 +255,11 @@ export class App extends Protocol<Request, Notification, Result> {
    * ```typescript
    * await app.connect(transport);
    * const host = app.getHostVersion();
-   * if (host) {
-   *   console.log(`Connected to ${host.name} v${host.version}`);
+   * if (host === undefined) {
+   *   console.error("Not connected");
+   *   return;
    * }
+   * console.log(`Connected to ${host.name} v${host.version}`);
    * ```
    *
    * @see {@link connect} for the initialization handshake
@@ -257,14 +279,18 @@ export class App extends Protocol<Request, Notification, Result> {
    * This setter is a convenience wrapper around `setNotificationHandler()` that
    * automatically handles the notification schema and extracts the params for you.
    *
+   * Register handlers before calling {@link connect} to avoid missing notifications.
+   *
    * @param callback - Function called with the tool input params
    *
    * @example Using the setter (simpler)
    * ```typescript
+   * // Register before connecting to ensure no notifications are missed
    * app.ontoolinput = (params) => {
    *   console.log("Tool:", params.arguments);
-   *   renderToolUI(params.arguments);
+   *   // Update your UI with the tool arguments
    * };
+   * await app.connect(transport);
    * ```
    *
    * @example Using setNotificationHandler (more explicit)
@@ -273,7 +299,6 @@ export class App extends Protocol<Request, Notification, Result> {
    *   McpUiToolInputNotificationSchema,
    *   (notification) => {
    *     console.log("Tool:", notification.params.arguments);
-   *     renderToolUI(notification.params.arguments);
    *   }
    * );
    * ```
@@ -299,12 +324,15 @@ export class App extends Protocol<Request, Notification, Result> {
    * This setter is a convenience wrapper around `setNotificationHandler()` that
    * automatically handles the notification schema and extracts the params for you.
    *
+   * Register handlers before calling {@link connect} to avoid missing notifications.
+   *
    * @param callback - Function called with each partial tool input update
    *
    * @example Progressive rendering of tool arguments
    * ```typescript
    * app.ontoolinputpartial = (params) => {
-   *   updateToolUIProgressively(params.partialArguments);
+   *   console.log("Partial args:", params.arguments);
+   *   // Update your UI progressively as arguments stream in
    * };
    * ```
    *
@@ -330,16 +358,18 @@ export class App extends Protocol<Request, Notification, Result> {
    * This setter is a convenience wrapper around `setNotificationHandler()` that
    * automatically handles the notification schema and extracts the params for you.
    *
+   * Register handlers before calling {@link connect} to avoid missing notifications.
+   *
    * @param callback - Function called with the tool result
    *
    * @example Display tool execution results
    * ```typescript
    * app.ontoolresult = (params) => {
    *   if (params.content) {
-   *     displayToolOutput(params.content);
+   *     console.log("Tool output:", params.content);
    *   }
    *   if (params.isError) {
-   *     showError("Tool execution failed");
+   *     console.error("Tool execution failed");
    *   }
    * };
    * ```
@@ -366,6 +396,8 @@ export class App extends Protocol<Request, Notification, Result> {
    *
    * This setter is a convenience wrapper around `setNotificationHandler()` that
    * automatically handles the notification schema and extracts the params for you.
+   *
+   * Register handlers before calling {@link connect} to avoid missing notifications.
    *
    * @param callback - Function called with the updated host context
    *
@@ -405,16 +437,18 @@ export class App extends Protocol<Request, Notification, Result> {
    * This setter is a convenience wrapper around `setRequestHandler()` that
    * automatically handles the request schema and extracts the params for you.
    *
-   * @param callback - Async function that executes the tool and returns the result
+   * Register handlers before calling {@link connect} to avoid missing requests.
    *
-   * @throws {Error} If app did not declare tool capabilities
+   * @param callback - Async function that executes the tool and returns the result.
+   *   The callback will only be invoked if the app declared tool capabilities
+   *   in the constructor.
    *
    * @example Handle tool calls from the host
    * ```typescript
    * app.oncalltool = async (params, extra) => {
-   *   if (params.name === "calculate") {
-   *     const result = evaluate(params.arguments?.expression);
-   *     return { content: [{ type: "text", text: String(result) }] };
+   *   if (params.name === "greet") {
+   *     const name = params.arguments?.name ?? "World";
+   *     return { content: [{ type: "text", text: `Hello, ${name}!` }] };
    *   }
    *   throw new Error(`Unknown tool: ${params.name}`);
    * };
@@ -447,9 +481,11 @@ export class App extends Protocol<Request, Notification, Result> {
    * This setter is a convenience wrapper around `setRequestHandler()` that
    * automatically handles the request schema and extracts the params for you.
    *
-   * @param callback - Async function that returns the list of available tools
+   * Register handlers before calling {@link connect} to avoid missing requests.
    *
-   * @throws {Error} If app did not declare tool capabilities
+   * @param callback - Async function that returns the list of available tools.
+   *   The callback will only be invoked if the app declared tool capabilities
+   *   in the constructor.
    *
    * @example Return available tools
    * ```typescript
@@ -522,15 +558,29 @@ export class App extends Protocol<Request, Notification, Result> {
    * @param options - Request options (timeout, etc.)
    * @returns Tool execution result
    *
-   * @throws {Error} If the tool call fails or the server returns an error
+   * @throws {Error} If the tool does not exist on the server
+   * @throws {Error} If the request times out or the connection is lost
+   * @throws {Error} If the host rejects the request
+   *
+   * Note: Tool-level execution errors are returned in the result with `isError: true`
+   * rather than throwing exceptions. Always check `result.isError` to distinguish
+   * between transport failures (thrown) and tool execution failures (returned).
    *
    * @example Fetch updated weather data
    * ```typescript
-   * const result = await app.callServerTool({
-   *   name: "get_weather",
-   *   arguments: { location: "Tokyo" }
-   * });
-   * console.log(result.content);
+   * try {
+   *   const result = await app.callServerTool({
+   *     name: "get_weather",
+   *     arguments: { location: "Tokyo" }
+   *   });
+   *   if (result.isError) {
+   *     console.error("Tool returned error:", result.content);
+   *   } else {
+   *     console.log(result.content);
+   *   }
+   * } catch (error) {
+   *   console.error("Tool call failed:", error);
+   * }
    * ```
    *
    * @see {@link CallToolRequest} for request parameter structure
@@ -561,10 +611,15 @@ export class App extends Protocol<Request, Notification, Result> {
    *
    * @example Send a text message from user interaction
    * ```typescript
-   * await app.sendMessage({
-   *   role: "user",
-   *   content: [{ type: "text", text: "Show me details for item #42" }]
-   * });
+   * try {
+   *   await app.sendMessage({
+   *     role: "user",
+   *     content: [{ type: "text", text: "Show me details for item #42" }]
+   *   });
+   * } catch (error) {
+   *   console.error("Failed to send message:", error);
+   *   // Handle error appropriately for your app
+   * }
    * ```
    *
    * @see {@link McpUiMessageRequest} for request structure
@@ -618,7 +673,8 @@ export class App extends Protocol<Request, Notification, Result> {
    * @param options - Request options (timeout, etc.)
    * @returns Result indicating success or error
    *
-   * @throws {Error} If the host denies the request or the URL is invalid
+   * @throws {Error} If the host denies the request (e.g., blocked domain, user cancelled)
+   * @throws {Error} If the request times out or the connection is lost
    *
    * @example Open documentation link
    * ```typescript
@@ -626,6 +682,7 @@ export class App extends Protocol<Request, Notification, Result> {
    *   await app.sendOpenLink({ url: "https://docs.example.com" });
    * } catch (error) {
    *   console.error("Failed to open link:", error);
+   *   // Optionally show fallback: display URL for manual copy
    * }
    * ```
    *
@@ -733,7 +790,7 @@ export class App extends Protocol<Request, Notification, Result> {
    * 2. Sends `ui/initialize` request with app info and capabilities
    * 3. Receives host capabilities and context in response
    * 4. Sends `ui/notifications/initialized` notification
-   * 5. Sets up auto-resize if enabled (default)
+   * 5. Sets up auto-resize using {@link setupSizeChangeNotifications} if enabled (default)
    *
    * If initialization fails, the connection is automatically closed and an error
    * is thrown.

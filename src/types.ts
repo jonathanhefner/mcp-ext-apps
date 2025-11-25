@@ -77,7 +77,7 @@ type _VerifyOpenLinkRequest = VerifySchemaMatches<
 >;
 
 /**
- * Result from opening an external URL.
+ * Result from a {@link McpUiOpenLinkRequest}.
  *
  * The host returns this result after attempting to open the requested URL.
  *
@@ -100,9 +100,10 @@ export interface McpUiOpenLinkResult {
  * Runtime validation schema for {@link McpUiOpenLinkResult}.
  * @internal
  */
-export const McpUiOpenLinkResultSchema: z.ZodType<McpUiOpenLinkResult> = z.object({
-  isError: z.boolean().optional(),
-});
+export const McpUiOpenLinkResultSchema: z.ZodType<McpUiOpenLinkResult> =
+  z.object({
+    isError: z.boolean().optional(),
+  });
 
 /**
  * Request to send a message to the host's chat interface.
@@ -142,7 +143,7 @@ type _VerifyMessageRequest = VerifySchemaMatches<
 >;
 
 /**
- * Result from sending a message to the host's chat interface.
+ * Result from a {@link McpUiMessageRequest}.
  *
  * Note: The host does not return message content or follow-up results to prevent
  * leaking information from the conversation. Only error status is provided.
@@ -167,9 +168,11 @@ export interface McpUiMessageResult {
  * Runtime validation schema for {@link McpUiMessageResult}.
  * @internal
  */
-export const McpUiMessageResultSchema: z.ZodType<McpUiMessageResult> = z.object({
-  isError: z.boolean().optional(),
-});
+export const McpUiMessageResultSchema: z.ZodType<McpUiMessageResult> = z.object(
+  {
+    isError: z.boolean().optional(),
+  },
+);
 
 // McpUiIframeReadyNotification removed - replaced by standard MCP initialization
 // The SDK's oninitialized callback now handles the ready signal
@@ -363,8 +366,9 @@ type _VerifyToolInputPartialNotification = VerifySchemaMatches<
 /**
  * Notification containing tool execution result (Host → Guest UI).
  *
- * The host MUST send this notification when tool execution completes successfully
- * (if the UI is displayed during tool execution). This notification is sent after
+ * The host MUST send this notification when tool execution completes successfully,
+ * provided the UI is still displayed. If the UI was closed before execution
+ * completes, the host MAY skip this notification. This notification is sent after
  * {@link McpUiToolInputNotification}.
  *
  * The result follows the standard MCP CallToolResult format, containing content
@@ -405,7 +409,7 @@ type _VerifyToolResultNotification = VerifySchemaMatches<
  * const context = result.hostContext;
  *
  * if (context.theme === "dark") {
- *   applyDarkTheme();
+ *   document.body.classList.add("dark-mode");
  * }
  * ```
  */
@@ -610,7 +614,8 @@ export interface McpUiResourceTeardownResult {}
  * Runtime validation schema for {@link McpUiResourceTeardownResult}.
  * @internal
  */
-export const McpUiResourceTeardownResultSchema: z.ZodType<McpUiResourceTeardownResult> = EmptyResultSchema;
+export const McpUiResourceTeardownResultSchema: z.ZodType<McpUiResourceTeardownResult> =
+  EmptyResultSchema;
 
 /**
  * Capabilities supported by the host application.
@@ -620,10 +625,13 @@ export const McpUiResourceTeardownResultSchema: z.ZodType<McpUiResourceTeardownR
  *
  * @example Check if host supports opening links
  * ```typescript
- * if (hostCapabilities.openLinks) {
+ * const result = await app.connect(transport);
+ * if (result.hostCapabilities.openLinks) {
  *   await app.sendOpenLink({ url: "https://example.com" });
  * }
  * ```
+ *
+ * @see {@link McpUiInitializeResult} for the initialization result that includes these capabilities
  */
 export interface McpUiHostCapabilities {
   /** Experimental features (structure TBD) */
@@ -648,21 +656,22 @@ export interface McpUiHostCapabilities {
  * Runtime validation schema for {@link McpUiHostCapabilities}.
  * @internal
  */
-export const McpUiHostCapabilitiesSchema: z.ZodType<McpUiHostCapabilities> = z.object({
-  experimental: z.object({}).optional(),
-  openLinks: z.object({}).optional(),
-  serverTools: z
-    .object({
-      listChanged: z.boolean().optional(),
-    })
-    .optional(),
-  serverResources: z
-    .object({
-      listChanged: z.boolean().optional(),
-    })
-    .optional(),
-  logging: z.object({}).optional(),
-});
+export const McpUiHostCapabilitiesSchema: z.ZodType<McpUiHostCapabilities> =
+  z.object({
+    experimental: z.object({}).optional(),
+    openLinks: z.object({}).optional(),
+    serverTools: z
+      .object({
+        listChanged: z.boolean().optional(),
+      })
+      .optional(),
+    serverResources: z
+      .object({
+        listChanged: z.boolean().optional(),
+      })
+      .optional(),
+    logging: z.object({}).optional(),
+  });
 
 /**
  * Capabilities provided by the Guest UI (App).
@@ -677,6 +686,8 @@ export const McpUiHostCapabilitiesSchema: z.ZodType<McpUiHostCapabilities> = z.o
  *   { tools: { listChanged: true } }
  * );
  * ```
+ *
+ * @see {@link McpUiInitializeRequest} for the initialization request that includes these capabilities
  */
 export interface McpUiAppCapabilities {
   /** Experimental features (structure TBD) */
@@ -695,14 +706,15 @@ export interface McpUiAppCapabilities {
  * Runtime validation schema for {@link McpUiAppCapabilities}.
  * @internal
  */
-export const McpUiAppCapabilitiesSchema: z.ZodType<McpUiAppCapabilities> = z.object({
-  experimental: z.object({}).optional(),
-  tools: z
-    .object({
-      listChanged: z.boolean().optional(),
-    })
-    .optional(),
-});
+export const McpUiAppCapabilitiesSchema: z.ZodType<McpUiAppCapabilities> =
+  z.object({
+    experimental: z.object({}).optional(),
+    tools: z
+      .object({
+        listChanged: z.boolean().optional(),
+      })
+      .optional(),
+  });
 
 /**
  * Initialization request sent from Guest UI to Host.
@@ -756,9 +768,13 @@ type _VerifyInitializeRequest = VerifySchemaMatches<
  * @see {@link McpUiInitializeRequest}
  */
 export interface McpUiInitializeResult {
+  /** Negotiated protocol version string (e.g., "2025-11-21") */
   protocolVersion: string;
+  /** Host application identification and version */
   hostInfo: Implementation;
+  /** Features and capabilities provided by the host */
   hostCapabilities: McpUiHostCapabilities;
+  /** Rich context about the host environment */
   hostContext: McpUiHostContext;
   /**
    * Index signature required for MCP SDK `Protocol` class compatibility.
@@ -771,12 +787,13 @@ export interface McpUiInitializeResult {
  * Runtime validation schema for {@link McpUiInitializeResult}.
  * @internal
  */
-export const McpUiInitializeResultSchema: z.ZodType<McpUiInitializeResult> = z.object({
-  protocolVersion: z.string(),
-  hostInfo: ImplementationSchema,
-  hostCapabilities: McpUiHostCapabilitiesSchema,
-  hostContext: McpUiHostContextSchema,
-});
+export const McpUiInitializeResultSchema: z.ZodType<McpUiInitializeResult> =
+  z.object({
+    protocolVersion: z.string(),
+    hostInfo: ImplementationSchema,
+    hostCapabilities: McpUiHostCapabilitiesSchema,
+    hostContext: McpUiHostContextSchema,
+  });
 
 /**
  * Notification that Guest UI has completed initialization (Guest UI → Host).

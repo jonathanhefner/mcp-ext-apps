@@ -7,21 +7,22 @@ import { App } from "../app";
  * Uses ResizeObserver to watch `document.body` and `document.documentElement` for
  * size changes and sends `ui/notifications/size-change` notifications.
  *
- * **Note**: This hook is rarely needed since the `useApp` hook automatically enables
+ * **Note**: This hook is rarely needed since the {@link useApp} hook automatically enables
  * auto-resize by default. This hook is provided for advanced cases where you
- * create the App manually with `autoResize: false` and want to add auto-resize
+ * create the {@link App} manually with `autoResize: false` and want to add auto-resize
  * behavior later.
  *
  * @param app - The connected App instance, or null during initialization
- * @param elementRef - Reserved for future use. Currently unused; the hook always
- *   observes document.body and document.documentElement. Including this parameter
- *   will cause the effect to re-run when the ref changes, even though it has no effect.
+ * @param elementRef - Currently unused. The hook always observes `document.body`
+ *   and `document.documentElement` regardless of this value. Passing a ref will
+ *   cause unnecessary effect re-runs; omit this parameter.
  *
  * @example Manual App creation with custom auto-resize control
  * ```tsx
  * function MyComponent() {
  *   // For custom App options, create App manually instead of using useApp
  *   const [app, setApp] = useState<App | null>(null);
+ *   const [error, setError] = useState<Error | null>(null);
  *
  *   useEffect(() => {
  *     const myApp = new App(
@@ -31,18 +32,22 @@ import { App } from "../app";
  *     );
  *
  *     const transport = new PostMessageTransport(window.parent);
- *     myApp.connect(transport).then(() => setApp(myApp));
+ *     myApp.connect(transport)
+ *       .then(() => setApp(myApp))
+ *       .catch((err) => setError(err));
  *   }, []);
  *
  *   // Add manual auto-resize control
  *   useAutoResize(app);
  *
+ *   if (error) return <div>Connection failed: {error.message}</div>;
  *   return <div>My content</div>;
  * }
  * ```
  *
  * @see {@link App.setupSizeChangeNotifications} for the underlying implementation
  * @see {@link useApp} which enables auto-resize by default
+ * @see {@link App} constructor for configuring `autoResize` option
  */
 export function useAutoResize(
   app: App | null,

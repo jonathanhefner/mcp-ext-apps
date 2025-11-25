@@ -7,9 +7,12 @@ export * from "../app";
 /**
  * Options for configuring the useApp hook.
  *
- * Note: This interface does NOT expose {@link AppOptions} like `autoResize`.
+ * Note: This interface does NOT expose App options like `autoResize`.
  * The hook creates the App with default options (autoResize: true). If you need
  * custom App options, create the App manually instead of using this hook.
+ *
+ * @see {@link useApp} for the hook that uses these options
+ * @see {@link useAutoResize} for manual auto-resize control with custom App options
  */
 export interface UseAppOptions {
   /** App identification (name and version) */
@@ -26,6 +29,8 @@ export interface UseAppOptions {
    *
    * @example Register a notification handler
    * ```typescript
+   * import { McpUiToolInputNotificationSchema } from '@modelcontextprotocol/ext-apps/react';
+   *
    * onAppCreated: (app) => {
    *   app.setNotificationHandler(
    *     McpUiToolInputNotificationSchema,
@@ -54,23 +59,25 @@ export interface AppState {
 /**
  * React hook to create and connect an MCP App.
  *
- * This hook manages the complete lifecycle of an App: creation, connection,
- * and cleanup. It automatically creates a PostMessageTransport to window.parent
+ * This hook manages the complete lifecycle of an {@link App}: creation, connection,
+ * and cleanup. It automatically creates a {@link PostMessageTransport} to window.parent
  * and handles initialization.
  *
  * **Important**: The hook intentionally does NOT re-run when options change
  * to avoid reconnection loops. Options are only used during the initial mount.
  *
  * **Note**: This is part of the optional React integration. The core SDK
- * ({@link App}, {@link PostMessageTransport}) is framework-agnostic and can be
+ * (App, PostMessageTransport) is framework-agnostic and can be
  * used with any UI framework or vanilla JavaScript.
  *
  * @param options - Configuration for the app
- * @returns Current connection state and app instance
+ * @returns Current connection state and app instance. If connection fails during
+ *   initialization, the `error` field will contain the error (typically connection
+ *   timeouts, initialization handshake failures, or transport errors).
  *
  * @example Basic usage
  * ```typescript
- * import { useApp } from '@modelcontextprotocol/ext-apps/react';
+ * import { useApp, McpUiToolInputNotificationSchema } from '@modelcontextprotocol/ext-apps/react';
  *
  * function MyApp() {
  *   const { app, isConnected, error } = useApp({
@@ -81,17 +88,20 @@ export interface AppState {
  *       app.setNotificationHandler(
  *         McpUiToolInputNotificationSchema,
  *         (notification) => {
- *           setToolArgs(notification.params.arguments);
+ *           console.log("Tool input:", notification.params.arguments);
  *         }
  *       );
  *     },
  *   });
  *
- *   if (error) return <ErrorView error={error} />;
- *   if (!isConnected) return <LoadingView />;
- *   return <AppView app={app} />;
+ *   if (error) return <div>Error: {error.message}</div>;
+ *   if (!isConnected) return <div>Connecting...</div>;
+ *   return <div>Connected!</div>;
  * }
  * ```
+ *
+ * @see {@link App.connect} for the underlying connection method
+ * @see {@link useAutoResize} for manual auto-resize control when using custom App options
  */
 export function useApp({
   appInfo,

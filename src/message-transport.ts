@@ -122,7 +122,7 @@ export class PostMessageTransport implements Transport {
   /**
    * Stop listening for messages and cleanup.
    *
-   * Removes the message event listener and calls the onclose callback if set.
+   * Removes the message event listener and calls the {@link onclose} callback if set.
    */
   async close() {
     window.removeEventListener("message", this.messageListener);
@@ -131,31 +131,47 @@ export class PostMessageTransport implements Transport {
 
   /**
    * Called when the transport is closed.
-   * @see {@link Transport.onclose}
+   *
+   * Set this handler to be notified when {@link close} is called.
    */
   onclose?: () => void;
 
   /**
    * Called when a message parsing error occurs.
-   * @see {@link Transport.onerror}
+   *
+   * This handler is invoked when a received message fails JSON-RPC schema
+   * validation. The error parameter contains details about the validation failure.
+   *
+   * @param error - Error describing the validation failure
    */
   onerror?: (error: Error) => void;
 
   /**
    * Called when a valid JSON-RPC message is received.
-   * @see {@link Transport.onmessage}
+   *
+   * This handler is invoked after message validation succeeds. The {@link start}
+   * method must be called before messages will be received.
+   *
+   * @param message - The validated JSON-RPC message
+   * @param extra - Optional metadata about the message (unused in this transport)
    */
   onmessage?: (message: JSONRPCMessage, extra?: MessageExtraInfo) => void;
 
   /**
-   * Optional session identifier.
-   * @see {@link Transport.sessionId}
+   * Optional session identifier for this transport connection.
+   *
+   * Set by the MCP SDK to track the connection session. Not required for
+   * PostMessageTransport functionality.
    */
   sessionId?: string;
 
   /**
    * Callback to set the negotiated protocol version.
-   * @see {@link Transport.setProtocolVersion}
+   *
+   * The MCP SDK calls this during initialization to communicate the protocol
+   * version negotiated with the peer.
+   *
+   * @param version - The negotiated protocol version string
    */
   setProtocolVersion?: (version: string) => void;
 }
