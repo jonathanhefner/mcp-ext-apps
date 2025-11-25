@@ -1,5 +1,5 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { ZodLiteral, ZodObject } from "zod";
+import { ZodLiteral, ZodObject } from "zod/v4";
 
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import {

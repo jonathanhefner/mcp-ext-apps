@@ -12,7 +12,7 @@ import {
   Tool,
   ToolSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 /**
  * Type-level assertion that validates a Zod schema produces the expected interface.
@@ -314,7 +314,7 @@ export interface McpUiToolInputNotification {
 export const McpUiToolInputNotificationSchema = z.object({
   method: z.literal("ui/notifications/tool-input"),
   params: z.object({
-    arguments: z.record(z.unknown()).optional(),
+    arguments: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
@@ -353,7 +353,7 @@ export interface McpUiToolInputPartialNotification {
 export const McpUiToolInputPartialNotificationSchema = z.object({
   method: z.literal("ui/notifications/tool-input-partial"),
   params: z.object({
-    arguments: z.record(z.unknown()).optional(),
+    arguments: z.record(z.string(), z.unknown()).optional(),
   }),
 });
 
