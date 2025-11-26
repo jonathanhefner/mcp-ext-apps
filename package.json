@@ -1,8 +1,8 @@
 {
-  "homepage": "https://gist.github.com/a9603ba2d6757d6038ce066eded4c354",
+  "homepage": "https://github.com/modelcontextprotocol/ext-apps",
   "name": "@modelcontextprotocol/ext-apps",
   "version": "0.0.1",
-  "description": "Hey",
+  "description": "MCP Apps SDK — Enable MCP servers to display interactive user interfaces in conversational clients.",
   "type": "module",
   "main": "./dist/src/app.js",
   "exports": {
