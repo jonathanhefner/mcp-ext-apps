@@ -267,8 +267,10 @@ export class AppBridge extends Protocol<Request, Notification, Result> {
    * @example
    * ```typescript
    * bridge.onsizechange = ({ width, height }) => {
-   *   if (width && height) {
+   *   if (width != null) {
    *     iframe.style.width = `${width}px`;
+   *   }
+   *   if (height != null) {
    *     iframe.style.height = `${height}px`;
    *   }
    * };
