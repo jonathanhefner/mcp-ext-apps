@@ -1,0 +1,14 @@
+{
+  "name": "simple-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npm run server",
+    "server": "bun server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "../..",
+    "@modelcontextprotocol/sdk": "^1.22.0"
+  }
+}
