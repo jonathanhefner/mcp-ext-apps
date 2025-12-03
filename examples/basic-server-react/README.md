@@ -2,6 +2,9 @@
 
 An MCP App example with a React UI.
 
+> [!TIP]
+> Looking for a vanilla JavaScript example? See [`basic-server-vanillajs`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-server-vanillajs)!
+
 ## Overview
 
 - Tool registration with a linked UI resource
