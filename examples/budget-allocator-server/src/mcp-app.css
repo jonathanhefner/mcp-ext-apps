@@ -10,6 +10,7 @@
   --color-info: #3b82f6;
   --slider-track: #e5e7eb;
   --slider-thumb: #3b82f6;
+  --slider-thumb-size: 16px;
   --card-bg: #f9fafb;
 }
 
@@ -277,7 +278,7 @@ html, body {
 /* Slider Container - pad left to prevent thumb bleeding into sparkline */
 .slider-container {
   overflow: visible;
-  padding: 4px 0 4px 8px;
+  padding: 4px 0 4px calc(var(--slider-thumb-size) / 2);
 }
 
 /* Range Slider */
@@ -295,8 +296,8 @@ html, body {
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
   border-radius: 50%;
   background: var(--slider-thumb);
   cursor: pointer;
@@ -310,8 +311,8 @@ html, body {
 }
 
 .slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: var(--slider-thumb-size);
+  height: var(--slider-thumb-size);
   border-radius: 50%;
   background: var(--slider-thumb);
   cursor: pointer;
