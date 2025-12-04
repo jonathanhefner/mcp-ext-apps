@@ -491,9 +491,6 @@ Already used in `system-monitor-server`. Mature, well-documented, good animation
 ### Vanilla JS (not React)
 Follows `system-monitor-server` pattern. Smaller bundle, simpler for this use case.
 
-### Port 3002
-Avoids conflict with `system-monitor-server` (port 3001). Allows running both simultaneously.
-
 ---
 
 ## Reference Patterns
