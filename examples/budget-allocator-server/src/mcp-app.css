@@ -151,7 +151,7 @@ html, body {
   }
 
   .slider-row {
-    grid-template-columns: 70px 36px minmax(40px, 1fr) 48px 38px;
+    grid-template-columns: 85px 40px minmax(30px, 1fr) 48px 38px;
     gap: 4px;
     padding: 3px 4px;
   }
@@ -200,7 +200,7 @@ html, body {
 /* Very narrow screens: hide sparklines */
 @media (max-width: 380px) {
   .slider-row {
-    grid-template-columns: 65px minmax(40px, 1fr) 44px 36px;
+    grid-template-columns: 80px minmax(30px, 1fr) 44px 36px;
   }
 
   .sparkline-wrapper {
