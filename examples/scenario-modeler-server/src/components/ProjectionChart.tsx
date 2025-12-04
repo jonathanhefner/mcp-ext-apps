@@ -30,7 +30,7 @@ export function ProjectionChart({
     chartRef.current = new Chart(canvasRef.current, {
       type: "line",
       data: {
-        labels: Array.from({ length: 12 }, (_, i) => `Mo ${i + 1}`),
+        labels: Array.from({ length: 12 }, (_, i) => `M${i + 1}`),
         datasets: [
           // User scenario (solid lines)
           {
