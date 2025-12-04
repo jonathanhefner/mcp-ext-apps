@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import cors from "cors";
 import express, { type Request, type Response } from "express";
 import fs from "node:fs/promises";
@@ -11,36 +11,49 @@ import { RESOURCE_URI_META_KEY } from "../../dist/src/app";
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 const DIST_DIR = path.join(import.meta.dirname, "dist");
 
-// Types
+// Schemas - types are derived from these using z.infer
+const InputSchema = z.object({
+  metric: z.enum(["retention", "revenue", "active"]).optional().default("retention"),
+  periodType: z.enum(["monthly", "weekly"]).optional().default("monthly"),
+  cohortCount: z.number().min(3).max(24).optional().default(12),
+  maxPeriods: z.number().min(3).max(24).optional().default(12),
+});
+
+const CohortCellSchema = z.object({
+  cohortIndex: z.number(),
+  periodIndex: z.number(),
+  retention: z.number(),
+  usersRetained: z.number(),
+  usersOriginal: z.number(),
+});
+
+const CohortRowSchema = z.object({
+  cohortId: z.string(),
+  cohortLabel: z.string(),
+  originalUsers: z.number(),
+  cells: z.array(CohortCellSchema),
+});
+
+const OutputSchema = z.object({
+  cohorts: z.array(CohortRowSchema),
+  periods: z.array(z.string()),
+  periodLabels: z.array(z.string()),
+  metric: z.string(),
+  periodType: z.string(),
+  generatedAt: z.string(),
+});
+
+// Types derived from schemas
+type CohortCell = z.infer<typeof CohortCellSchema>;
+type CohortRow = z.infer<typeof CohortRowSchema>;
+type CohortData = z.infer<typeof OutputSchema>;
+
+// Internal types (not part of API schema)
 interface RetentionParams {
   baseRetention: number;
   decayRate: number;
   floor: number;
   noise: number;
-}
-
-interface CohortCell {
-  cohortIndex: number;
-  periodIndex: number;
-  retention: number;
-  usersRetained: number;
-  usersOriginal: number;
-}
-
-interface CohortRow {
-  cohortId: string;
-  cohortLabel: string;
-  originalUsers: number;
-  cells: CohortCell[];
-}
-
-interface CohortData {
-  cohorts: CohortRow[];
-  periods: string[];
-  periodLabels: string[];
-  metric: string;
-  periodType: string;
-  generatedAt: string;
 }
 
 // Retention curve generator using exponential decay
@@ -150,40 +163,16 @@ const server = new McpServer({
     {
       title: "Get Cohort Retention Data",
       description: "Returns cohort retention heatmap data showing customer retention over time by signup month",
-      inputSchema: {
-        metric: z.enum(["retention", "revenue", "active"]).optional().default("retention"),
-        periodType: z.enum(["monthly", "weekly"]).optional().default("monthly"),
-        cohortCount: z.number().min(3).max(24).optional().default(12),
-        maxPeriods: z.number().min(3).max(24).optional().default(12),
-      },
-      outputSchema: {
-        cohorts: z.array(z.object({
-          cohortId: z.string(),
-          cohortLabel: z.string(),
-          originalUsers: z.number(),
-          cells: z.array(z.object({
-            cohortIndex: z.number(),
-            periodIndex: z.number(),
-            retention: z.number(),
-            usersRetained: z.number(),
-            usersOriginal: z.number(),
-          })),
-        })),
-        periods: z.array(z.string()),
-        periodLabels: z.array(z.string()),
-        metric: z.string(),
-        periodType: z.string(),
-        generatedAt: z.string(),
-      },
+      inputSchema: InputSchema.shape,
+      outputSchema: OutputSchema.shape,
       _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
     },
-    async (args): Promise<CallToolResult> => {
-      const { metric, periodType, cohortCount, maxPeriods } = args;
+    async ({ metric, periodType, cohortCount, maxPeriods }) => {
       const data = generateCohortData(metric, periodType, cohortCount, maxPeriods);
 
       return {
         content: [{ type: "text", text: formatCohortSummary(data) }],
-        structuredContent: data as unknown as { [key: string]: unknown },
+        structuredContent: data,
       };
     },
   );
