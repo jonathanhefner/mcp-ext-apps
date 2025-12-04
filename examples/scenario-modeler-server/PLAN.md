@@ -186,9 +186,19 @@ examples/scenario-modeler-server/
 ├── tsconfig.json         # TypeScript config
 ├── vite.config.ts        # Vite build config
 ├── server.ts             # MCP server with tool + resource
-├── mcp-app.html          # HTML entry template
+├── mcp-app.html          # HTML entry template (React mount point)
 ├── src/
-│   ├── mcp-app.ts        # App logic + Chart.js
+│   ├── mcp-app.tsx       # Main App component
+│   ├── components/
+│   │   ├── SliderRow.tsx     # Reusable parameter slider
+│   │   ├── MetricCard.tsx    # Reusable metric display card
+│   │   └── ProjectionChart.tsx # Chart.js wrapper component
+│   ├── hooks/
+│   │   └── useTheme.ts       # Theme detection hook
+│   ├── lib/
+│   │   ├── calculations.ts   # Projection/summary calculation functions
+│   │   └── formatters.ts     # Currency/percent formatting utilities
+│   ├── types.ts          # TypeScript interfaces
 │   ├── mcp-app.css       # Component styles
 │   └── global.css        # Base styles
 └── dist/
@@ -201,10 +211,10 @@ examples/scenario-modeler-server/
 
 ### Step 1: Project Setup
 
-Create directory and copy config files from `system-monitor-server`:
-- `tsconfig.json` (copy exactly)
-- `vite.config.ts` (copy exactly)
-- `src/global.css` (copy exactly)
+Create directory and copy config files from `basic-server-react`:
+- `tsconfig.json` (copy exactly — includes JSX support)
+- `vite.config.ts` (copy exactly — includes React plugin)
+- `src/global.css` (copy from `system-monitor-server`)
 
 Create `package.json`:
 ```json
@@ -224,12 +234,17 @@ Create `package.json`:
     "@modelcontextprotocol/ext-apps": "../..",
     "@modelcontextprotocol/sdk": "^1.22.0",
     "chart.js": "^4.4.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.5.0",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -313,57 +328,23 @@ server.registerTool(
 
 ### Step 3: HTML Template (`mcp-app.html`)
 
-Structure:
+Minimal React mount point:
 ```html
-<main class="main">
-  <header class="header">
-    <h1 class="title">SaaS Scenario Modeler</h1>
-    <div class="header-controls">
-      <select id="template-select" class="template-select">
-        <option value="">Compare to template...</option>
-        <!-- Populated from server data -->
-      </select>
-      <button id="reset-btn" class="btn btn-secondary">Reset</button>
-    </div>
-  </header>
-
-  <section class="parameters-section">
-    <h2 class="section-title">Parameters</h2>
-    <!-- 5 slider rows -->
-  </section>
-
-  <section class="chart-section">
-    <h2 class="section-title">12-Month Projection</h2>
-    <div class="chart-container">
-      <canvas id="projection-chart"></canvas>
-    </div>
-    <div class="chart-legend">
-      <span class="legend-item legend-yours">── Your scenario</span>
-      <span class="legend-item legend-template" id="template-legend" hidden>┄┄ Template</span>
-    </div>
-  </section>
-
-  <section class="metrics-section">
-    <div class="metrics-comparison">
-      <div class="metrics-column metrics-yours">
-        <h3 class="metrics-title">Your Scenario</h3>
-        <div class="metrics-grid">
-          <!-- 3 metric cards: Ending MRR, Total Revenue, Total Profit -->
-        </div>
-      </div>
-      <div class="metrics-column metrics-template" id="template-metrics" hidden>
-        <h3 class="metrics-title" id="template-name">vs. Template</h3>
-        <div class="metrics-grid">
-          <!-- 2 metric cards: Ending MRR, Total Profit -->
-        </div>
-      </div>
-    </div>
-    <div class="metrics-summary">
-      <!-- Summary row: breakeven, growth %, comparison delta -->
-    </div>
-  </section>
-</main>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SaaS Scenario Modeler</title>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="./src/mcp-app.tsx"></script>
+</body>
+</html>
 ```
+
+All UI structure is defined in React components.
 
 ### Step 4: Styles (`src/mcp-app.css`)
 
@@ -375,79 +356,277 @@ Key CSS features:
 - Grid-based metrics (3 columns, 2 rows)
 - Custom slider thumb styling
 
-### Step 5: App Logic (`src/mcp-app.ts`)
+### Step 5: React Components (`src/`)
 
-Key components:
+**Main App Component (`mcp-app.tsx`):**
+```tsx
+import { useState, useMemo, useCallback } from "react";
+import { createRoot } from "react-dom/client";
+import { McpClientProvider, useToolResult } from "@anthropic/ext-app-sdk/react";
+import { SliderRow } from "./components/SliderRow";
+import { MetricCard } from "./components/MetricCard";
+import { ProjectionChart } from "./components/ProjectionChart";
+import { calculateProjections, calculateSummary } from "./lib/calculations";
+import { formatCurrency, formatPercent } from "./lib/formatters";
+import type { ScenarioInputs, ScenarioTemplate } from "./types";
+import "./global.css";
+import "./mcp-app.css";
 
-**State Management:**
-```typescript
-interface AppState {
-  templates: ScenarioTemplate[];      // From server
-  selectedTemplateId: string | null;  // Currently compared template
-  currentInputs: ScenarioInputs;      // Current slider values
-  // Client-computed (for instant slider feedback):
-  currentProjections: MonthlyProjection[];
-  currentSummary: ScenarioSummary;
+const DEFAULT_INPUTS: ScenarioInputs = {
+  startingMRR: 50000,
+  monthlyGrowthRate: 5,
+  monthlyChurnRate: 3,
+  grossMargin: 80,
+  fixedCosts: 30000,
+};
+
+function App() {
+  const [inputs, setInputs] = useState<ScenarioInputs>(DEFAULT_INPUTS);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<ScenarioTemplate[]>([]);
+
+  // Receive templates from server on tool result
+  useToolResult((result) => {
+    if (result.structuredContent?.templates) {
+      setTemplates(result.structuredContent.templates);
+    }
+  });
+
+  // Derived state — recalculates automatically when inputs change
+  const projections = useMemo(() => calculateProjections(inputs), [inputs]);
+  const summary = useMemo(() => calculateSummary(projections), [projections]);
+
+  // Selected template (if any)
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === selectedTemplateId) ?? null,
+    [templates, selectedTemplateId]
+  );
+
+  // Handlers
+  const handleInputChange = useCallback((key: keyof ScenarioInputs, value: number) => {
+    setInputs((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setInputs(DEFAULT_INPUTS);
+    setSelectedTemplateId(null);
+  }, []);
+
+  const handleLoadTemplate = useCallback((template: ScenarioTemplate) => {
+    setInputs(template.parameters);
+    setSelectedTemplateId(null); // Clear comparison after loading
+  }, []);
+
+  return (
+    <main className="main">
+      <Header
+        templates={templates}
+        selectedTemplateId={selectedTemplateId}
+        onSelectTemplate={setSelectedTemplateId}
+        onReset={handleReset}
+      />
+
+      <ParametersSection inputs={inputs} onChange={handleInputChange} />
+
+      <ProjectionChart
+        userProjections={projections}
+        templateProjections={selectedTemplate?.projections ?? null}
+        templateName={selectedTemplate?.name}
+      />
+
+      <MetricsSection
+        userSummary={summary}
+        templateSummary={selectedTemplate?.summary ?? null}
+        templateName={selectedTemplate?.name}
+      />
+    </main>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <McpClientProvider>
+    <App />
+  </McpClientProvider>
+);
+```
+
+**Reusable Components:**
+
+`SliderRow.tsx` — Used 5 times for parameter inputs:
+```tsx
+interface SliderRowProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format: (v: number) => string;  // e.g., formatCurrency or formatPercent
+  onChange: (value: number) => void;
+}
+
+export function SliderRow({ label, value, min, max, step, format, onChange }: SliderRowProps) {
+  return (
+    <div className="slider-row">
+      <label className="slider-label">{label}</label>
+      <input
+        type="range"
+        className="slider-input"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <span className="slider-value">{format(value)}</span>
+    </div>
+  );
 }
 ```
 
-**Initialization:**
-1. Connect to MCP transport
-2. On tool result, receive templates + default inputs from server
-3. Populate template dropdown with template names
-4. Initialize sliders with default inputs
-5. Initialize Chart.js with 6 datasets (3 solid for user, 3 dashed for template)
+`MetricCard.tsx` — Used for displaying summary metrics:
+```tsx
+interface MetricCardProps {
+  label: string;
+  value: string;
+  variant?: "default" | "positive" | "negative";
+}
 
-**Chart Configuration:**
-```typescript
-datasets: [
-  // User scenario (solid lines)
-  { label: "MRR", borderColor: "#3b82f6", backgroundColor: "rgba(59,130,246,0.1)", fill: true },
-  { label: "Gross Profit", borderColor: "#10b981", borderDash: [] },
-  { label: "Net Profit", borderColor: "#f59e0b", borderDash: [] },
-  // Template comparison (dashed lines, initially hidden)
-  { label: "Template MRR", borderColor: "#3b82f6", borderDash: [5, 5], hidden: true },
-  { label: "Template Gross Profit", borderColor: "#10b981", borderDash: [5, 5], hidden: true },
-  { label: "Template Net Profit", borderColor: "#f59e0b", borderDash: [5, 5], hidden: true },
-]
+export function MetricCard({ label, value, variant = "default" }: MetricCardProps) {
+  return (
+    <div className={`metric-card metric-card--${variant}`}>
+      <span className="metric-value">{value}</span>
+      <span className="metric-label">{label}</span>
+    </div>
+  );
+}
 ```
 
-**Event Handlers:**
-1. Slider input → `recalculate()` (client-side, instant)
-2. Template dropdown change → `selectTemplate(templateId)`
-3. Reset button → restore default inputs, clear template selection
-4. Theme change → rebuild chart
+`ProjectionChart.tsx` — Chart.js wrapper with imperative updates:
+```tsx
+import { useRef, useEffect } from "react";
+import { Chart, registerables } from "chart.js";
+import { useTheme } from "../hooks/useTheme";
+import type { MonthlyProjection } from "../types";
 
-**Template Selection:**
-```typescript
-function selectTemplate(templateId: string | null): void {
-  state.selectedTemplateId = templateId;
+Chart.register(...registerables);
 
-  if (templateId) {
-    const template = state.templates.find(t => t.id === templateId);
-    // Show template datasets on chart
-    chart.data.datasets[3].data = template.projections.map(p => p.mrr);
-    chart.data.datasets[4].data = template.projections.map(p => p.grossProfit);
-    chart.data.datasets[5].data = template.projections.map(p => p.netProfit);
-    chart.data.datasets[3].hidden = false;
-    chart.data.datasets[4].hidden = false;
-    chart.data.datasets[5].hidden = false;
-    // Show template metrics panel
-    showTemplateMetrics(template);
-  } else {
-    // Hide template datasets
-    chart.data.datasets[3].hidden = true;
-    chart.data.datasets[4].hidden = true;
-    chart.data.datasets[5].hidden = true;
-    hideTemplateMetrics();
-  }
-  chart.update();
+interface ProjectionChartProps {
+  userProjections: MonthlyProjection[];
+  templateProjections: MonthlyProjection[] | null;
+  templateName?: string;
+}
+
+export function ProjectionChart({ userProjections, templateProjections, templateName }: ProjectionChartProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const chartRef = useRef<Chart | null>(null);
+  const theme = useTheme();
+
+  // Create chart on mount, rebuild on theme change
+  useEffect(() => {
+    if (!canvasRef.current) return;
+
+    chartRef.current = new Chart(canvasRef.current, {
+      type: "line",
+      data: {
+        labels: Array.from({ length: 12 }, (_, i) => `Mo ${i + 1}`),
+        datasets: [
+          // User scenario (solid lines)
+          { label: "MRR", borderColor: "#3b82f6", data: [], fill: false },
+          { label: "Gross Profit", borderColor: "#10b981", data: [] },
+          { label: "Net Profit", borderColor: "#f59e0b", data: [] },
+          // Template comparison (dashed lines)
+          { label: "Template MRR", borderColor: "#3b82f6", borderDash: [5, 5], data: [], hidden: true },
+          { label: "Template Gross", borderColor: "#10b981", borderDash: [5, 5], data: [], hidden: true },
+          { label: "Template Net", borderColor: "#f59e0b", borderDash: [5, 5], data: [], hidden: true },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { color: theme === "dark" ? "#9ca3af" : "#6b7280" } },
+          x: { ticks: { color: theme === "dark" ? "#9ca3af" : "#6b7280" } },
+        },
+      },
+    });
+
+    return () => chartRef.current?.destroy();
+  }, [theme]);
+
+  // Update data when projections change
+  useEffect(() => {
+    if (!chartRef.current) return;
+
+    const chart = chartRef.current;
+    chart.data.datasets[0].data = userProjections.map((p) => p.mrr);
+    chart.data.datasets[1].data = userProjections.map((p) => p.grossProfit);
+    chart.data.datasets[2].data = userProjections.map((p) => p.netProfit);
+
+    if (templateProjections) {
+      chart.data.datasets[3].data = templateProjections.map((p) => p.mrr);
+      chart.data.datasets[4].data = templateProjections.map((p) => p.grossProfit);
+      chart.data.datasets[5].data = templateProjections.map((p) => p.netProfit);
+      chart.data.datasets[3].hidden = false;
+      chart.data.datasets[4].hidden = false;
+      chart.data.datasets[5].hidden = false;
+    } else {
+      chart.data.datasets[3].hidden = true;
+      chart.data.datasets[4].hidden = true;
+      chart.data.datasets[5].hidden = true;
+    }
+
+    chart.update();
+  }, [userProjections, templateProjections]);
+
+  return (
+    <section className="chart-section">
+      <h2 className="section-title">12-Month Projection</h2>
+      <div className="chart-container">
+        <canvas ref={canvasRef} />
+      </div>
+      <div className="chart-legend">
+        <span className="legend-item legend-yours">── Your scenario</span>
+        {templateProjections && (
+          <span className="legend-item legend-template">┄┄ {templateName}</span>
+        )}
+      </div>
+    </section>
+  );
+}
+```
+
+**Conditional Template Comparison:**
+
+The template metrics panel only renders when a template is selected:
+```tsx
+function MetricsSection({ userSummary, templateSummary, templateName }) {
+  return (
+    <section className="metrics-section">
+      <div className="metrics-comparison">
+        <div className="metrics-column">
+          <h3>Your Scenario</h3>
+          <MetricCard label="End MRR" value={formatCurrency(userSummary.endingMRR)} />
+          <MetricCard label="Revenue" value={formatCurrency(userSummary.totalRevenue)} />
+          <MetricCard label="Profit" value={formatCurrency(userSummary.totalProfit)} />
+        </div>
+
+        {templateSummary && (
+          <div className="metrics-column metrics-template">
+            <h3>vs. {templateName}</h3>
+            <MetricCard label="End MRR" value={formatCurrency(templateSummary.endingMRR)} />
+            <MetricCard label="Profit" value={formatCurrency(templateSummary.totalProfit)} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
 }
 ```
 
 **"Load Template" Feature (optional):**
-- Clicking a "Load" button next to template name copies template params to sliders
-- Allows users to start from a template and modify
+- Add a "Load" button in the template dropdown
+- Clicking calls `handleLoadTemplate(template)` to copy params to sliders
 
 ### Step 6: Testing
 
@@ -486,24 +665,39 @@ Templates must come from the server because they represent:
 This is **not contrived** — a real SaaS planning tool would source strategy templates from a backend with industry knowledge.
 
 ### Chart.js
-Already used in `system-monitor-server`. Mature, well-documented, good animation support. Dashed line support for template comparison is built-in.
+Already used in `system-monitor-server`. Mature, well-documented, good animation support. Dashed line support for template comparison is built-in. Wrapped in a React component with refs for imperative updates.
 
-### Vanilla JS (not React)
-Follows `system-monitor-server` pattern. Smaller bundle, simpler for this use case.
+### React (not Vanilla JS)
+Chosen over vanilla JS for this demo because:
+- **5 controlled slider inputs** — React's controlled component pattern is purpose-built for form state
+- **Derived state clarity** — `useMemo` makes the dependency chain explicit: inputs → projections → summary
+- **Conditional template comparison** — `{templateSummary && ...}` is cleaner than manual `.hidden` toggles across multiple elements
+- **Component reuse** — `<SliderRow>` (×5) and `<MetricCard>` (×5+) reduce boilerplate significantly
+- **Maintainability** — Future extensions (e.g., "Load Template" feature) are trivial to add
+
+Follows `basic-server-react` pattern.
 
 ---
 
 ## Reference Patterns
 
+Files to reference from `basic-server-react`:
+
+| Pattern | File |
+|---------|------|
+| React + Vite config | `vite.config.ts`, `tsconfig.json` |
+| McpClientProvider setup | `src/mcp-app.tsx` |
+| useToolResult hook | `src/mcp-app.tsx` |
+
 Files to reference from `system-monitor-server`:
 
-| Pattern | File | Lines |
-|---------|------|-------|
-| Tool registration with UI link | `server.ts` | 73-152 |
-| Chart.js initialization | `src/mcp-app.ts` | 117-188 |
-| Theme detection + chart rebuild | `src/mcp-app.ts` | 340-361 |
-| CSS variable theming | `src/mcp-app.css` | 1-29 |
-| Slider styling | (new for this app) | — |
+| Pattern | File |
+|---------|------|
+| Tool registration with UI link | `server.ts` |
+| Chart.js initialization | `src/mcp-app.ts` |
+| Theme detection | `src/mcp-app.ts` |
+| CSS variable theming | `src/mcp-app.css` |
+| global.css base styles | `src/global.css` |
 
 ---
 
@@ -514,9 +708,10 @@ Files to reference from `system-monitor-server`:
 | Chart doesn't fit | Reduced height to ~190px, compact legend |
 | Sliders feel cramped | 24px row height with optimized spacing |
 | Metrics overflow | Abbreviated currency format ($50K, $1.07M) |
-| Performance on drag | Client-side calculations, no server calls |
-| Dark mode chart issues | Rebuild chart on theme change |
-| Negative profit display | Handle sign in formatting |
+| Performance on drag | Client-side calculations via useMemo, no server calls |
+| Dark mode chart issues | useTheme hook triggers chart rebuild via useEffect dependency |
+| Negative profit display | Handle sign in formatting utilities |
 | Template comparison clutters chart | Use dashed lines with lower opacity; limit to 3 metrics |
 | Metrics section too wide with comparison | Side-by-side layout; template shows only 2 key metrics |
 | Template dropdown too long | 5 templates max; truncate names if needed |
+| Chart.js + React integration | Isolate in ProjectionChart component with refs; separate creation and update effects |
