@@ -12,7 +12,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
 const DIST_DIR = path.join(import.meta.dirname, "dist");
 
 // Schemas - types are derived from these using z.infer
-const InputSchema = z.object({
+const GetCohortDataInputSchema = z.object({
   metric: z.enum(["retention", "revenue", "active"]).optional().default("retention"),
   periodType: z.enum(["monthly", "weekly"]).optional().default("monthly"),
   cohortCount: z.number().min(3).max(24).optional().default(12),
@@ -34,7 +34,7 @@ const CohortRowSchema = z.object({
   cells: z.array(CohortCellSchema),
 });
 
-const OutputSchema = z.object({
+const CohortDataSchema = z.object({
   cohorts: z.array(CohortRowSchema),
   periods: z.array(z.string()),
   periodLabels: z.array(z.string()),
@@ -46,7 +46,7 @@ const OutputSchema = z.object({
 // Types derived from schemas
 type CohortCell = z.infer<typeof CohortCellSchema>;
 type CohortRow = z.infer<typeof CohortRowSchema>;
-type CohortData = z.infer<typeof OutputSchema>;
+type CohortData = z.infer<typeof CohortDataSchema>;
 
 // Internal types (not part of API schema)
 interface RetentionParams {
@@ -163,8 +163,8 @@ const server = new McpServer({
     {
       title: "Get Cohort Retention Data",
       description: "Returns cohort retention heatmap data showing customer retention over time by signup month",
-      inputSchema: InputSchema.shape,
-      outputSchema: OutputSchema.shape,
+      inputSchema: GetCohortDataInputSchema.shape,
+      outputSchema: CohortDataSchema.shape,
       _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
     },
     async ({ metric, periodType, cohortCount, maxPeriods }) => {
