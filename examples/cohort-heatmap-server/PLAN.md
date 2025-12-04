@@ -106,6 +106,53 @@ examples/cohort-heatmap-server/
 
 **Note**: No Chart.js needed — heatmap is implemented with CSS Grid for better control and simpler code. Uses React with the `useApp` hook from `@modelcontextprotocol/ext-apps/react`.
 
+### vite.config.ts
+
+```typescript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import { viteSingleFile } from "vite-plugin-singlefile";
+
+const INPUT = process.env.INPUT;
+if (!INPUT) {
+  throw new Error("INPUT environment variable is not set");
+}
+
+const isDevelopment = process.env.NODE_ENV === "development";
+
+export default defineConfig({
+  plugins: [react(), viteSingleFile()],
+  build: {
+    sourcemap: isDevelopment ? "inline" : undefined,
+    cssMinify: !isDevelopment,
+    minify: !isDevelopment,
+    rollupOptions: {
+      input: INPUT,
+    },
+    outDir: "dist",
+    emptyOutDir: false,
+  },
+});
+```
+
+### mcp-app.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cohort Retention Heatmap</title>
+  <link rel="stylesheet" href="/src/global.css">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/mcp-app.tsx"></script>
+</body>
+</html>
+```
+
 ---
 
 ## Server Implementation
