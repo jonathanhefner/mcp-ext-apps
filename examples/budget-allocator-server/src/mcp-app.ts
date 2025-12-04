@@ -292,6 +292,14 @@ function createSliderRow(
     state.allocations.get(category.id) ?? category.defaultPercent;
   const amount = (allocation / 100) * state.totalBudget;
 
+  // Calculate trend info for tooltip
+  const firstVal = historyData[0] ?? 0;
+  const lastVal = historyData[historyData.length - 1] ?? 0;
+  const trendDiff = lastVal - firstVal;
+  const trendArrow =
+    Math.abs(trendDiff) < 0.5 ? "" : trendDiff > 0 ? " +" : " ";
+  const tooltipText = `Past allocations: ${firstVal.toFixed(0)}%${trendArrow}${trendDiff.toFixed(1)}%`;
+
   const row = document.createElement("div");
   row.className = "slider-row";
   row.dataset.categoryId = category.id;
@@ -301,7 +309,10 @@ function createSliderRow(
       <span class="color-dot"></span>
       <span class="label-text">${category.name}</span>
     </label>
-    <canvas class="sparkline" width="50" height="24"></canvas>
+    <div class="sparkline-wrapper">
+      <canvas class="sparkline" width="40" height="20"></canvas>
+      <span class="sparkline-tooltip">${tooltipText}</span>
+    </div>
     <input
       type="range"
       class="slider"
