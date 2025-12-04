@@ -56,16 +56,18 @@ An interactive MCP App demo targeting business customers. Users adjust 5 busines
 +----------------------------------------------------------+ 600px
 ```
 
-### Height Budget
+### Layout Strategy
 
-| Section | Height | Details |
-|---------|--------|---------|
-| Header | 40px | Title + template dropdown + reset button |
-| Parameters | 140px | 5 sliders × 24px + section title + padding |
-| Chart | 230px | Chart canvas (~190px) + title + legend |
-| Metrics | 150px | Your metrics (3 cards) + template comparison (2 cards) + summary row |
-| Gaps/Padding | 40px | Distributed spacing |
-| **Total** | **600px** | |
+Uses **flex layout** with proportional sizing rather than fixed pixel heights:
+
+| Section | Flex | Details |
+|---------|------|---------|
+| Header | `flex-shrink: 0` | Fixed 40px height |
+| Parameters | `flex-shrink: 0` | Fixed height (5 sliders × 24px + padding) |
+| Chart | `flex: 2` | Takes 2/3 of remaining space |
+| Metrics | `flex: 1` | Takes 1/3 of remaining space |
+
+**Key CSS pattern**: Use `min-height: 0` on flex children to allow them to shrink below their content size. This is essential for fitting content within the 600×600 constraint.
 
 ---
 
@@ -280,7 +282,7 @@ interface GetScenarioDataOutput {
 ```
 
 7. Register UI resource serving `dist/mcp-app.html`
-8. Express server on port 3002
+8. Express server on port 3001
 
 ### Server Tool Registration
 
@@ -350,11 +352,13 @@ All UI structure is defined in React components.
 
 Key CSS features:
 - CSS variables for light/dark themes via `prefers-color-scheme`
-- Fixed 600×600 layout with `overflow: hidden`
+- Fixed 600×600 main container with `overflow: hidden`
+- **Flex-based vertical layout** with `flex: 2` for chart, `flex: 1` for metrics
+- **`min-height: 0`** on flex children to allow shrinking below content size
 - Compact slider rows (24px height)
-- Flex-based chart container
-- Grid-based metrics (3 columns, 2 rows)
+- Grid-based metrics with `grid-auto-rows: 1fr` for equal heights
 - Custom slider thumb styling
+- `flex-shrink: 0` on fixed-height sections (header, parameters, summary)
 
 ### Step 5: React Components (`src/`)
 
@@ -528,7 +532,7 @@ export function ProjectionChart({ userProjections, templateProjections, template
     chartRef.current = new Chart(canvasRef.current, {
       type: "line",
       data: {
-        labels: Array.from({ length: 12 }, (_, i) => `Mo ${i + 1}`),
+        labels: Array.from({ length: 12 }, (_, i) => `M${i + 1}`),
         datasets: [
           // User scenario (solid lines)
           { label: "MRR", borderColor: "#3b82f6", data: [], fill: false },
@@ -632,7 +636,7 @@ function MetricsSection({ userSummary, templateSummary, templateName }) {
 
 1. `npm install`
 2. `npm run build` — verify `dist/mcp-app.html` exists
-3. `npm run start` — server on port 3002
+3. `npm run start` — server on port 3001
 4. Test with `basic-host` example
 5. Verify:
    - Slider responsiveness (instant feedback)
@@ -705,9 +709,10 @@ Files to reference from `system-monitor-server`:
 
 | Risk | Mitigation |
 |------|------------|
-| Chart doesn't fit | Reduced height to ~190px, compact legend |
+| Content doesn't fit 600×600 | **Flex layout with `min-height: 0`** allows sections to shrink; chart uses `flex: 2`, metrics uses `flex: 1` |
+| Chart doesn't fit | Flex-based height with `min-height: 0`; compact "M1"-"M12" x-axis labels |
 | Sliders feel cramped | 24px row height with optimized spacing |
-| Metrics overflow | Abbreviated currency format ($50K, $1.07M) |
+| Metrics overflow | Abbreviated currency format ($50K, $1.07M); `grid-auto-rows: 1fr` for equal card heights |
 | Performance on drag | Client-side calculations via useMemo, no server calls |
 | Dark mode chart issues | useTheme hook triggers chart rebuild via useEffect dependency |
 | Negative profit display | Handle sign in formatting utilities |
