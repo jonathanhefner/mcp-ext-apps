@@ -76,7 +76,7 @@ interface SegmentSummary {
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│ Customer Segmentation Explorer          [Segment: All ▼]│  ~40px header
+│ Customer Segmentation                                   │  ~40px header
 ├─────────────────────────────────────────────────────────┤
 │  X: [Revenue     ▼]   Y: [Engagement ▼]   Size: [Off ▼]│  ~36px controls
 ├─────────────────────────────────────────────────────────┤
@@ -87,13 +87,16 @@ interface SegmentSummary {
 │                                                         │
 │                                                         │
 ├─────────────────────────────────────────────────────────┤
-│  ● Enterprise (45)  ● Mid-Market (62)  ● SMB (78) ...  │  ~40px legend
+│ [● Enterprise (38)] [● Mid-Market (62)] [● SMB (87)]...│  ~40px legend
 ├─────────────────────────────────────────────────────────┤
 │  Hover: Acme Corp | $2.4M rev | 89 eng | Enterprise    │  ~44px detail
 └─────────────────────────────────────────────────────────┘
 ```
 
 **Total: ~580px + padding = 600px**
+
+Legend items are styled as pill-shaped toggle buttons with visible borders to
+indicate they are clickable. Hidden segments show strikethrough text.
 
 ## Segment Color Palette (Business-appropriate)
 
@@ -110,10 +113,9 @@ const SEGMENT_COLORS: Record<string, string> = {
 
 1. **Axis Selection** - Dropdown menus to change X and Y axes (6 metrics available)
 2. **Size Toggle** - Dropdown to map bubble size to a metric (Off | Revenue | Employees | etc.)
-3. **Segment Filter** - Dropdown to show all segments or filter to one
-4. **Hover Tooltips** - Show customer name + key metrics on hover
-5. **Click Selection** - Click point to pin details in footer panel
-6. **Legend Click** - Toggle segment visibility on/off
+3. **Hover Tooltips** - Show customer name + key metrics on hover
+4. **Click Selection** - Click point to pin details in footer panel
+5. **Legend Toggle** - Click pill-shaped legend items to show/hide segments (with strikethrough feedback)
 
 ## Company Name Generation
 
@@ -203,10 +205,10 @@ No additional dependencies beyond what system-monitor-server uses.
 
 ### 4. Create UI HTML structure (`mcp-app.html`)
 
-- Header with title + segment filter dropdown
+- Header with title
 - Control bar with X/Y axis selectors + size toggle
 - Chart container (canvas element)
-- Legend row
+- Legend row with pill-shaped toggle buttons
 - Detail panel for hover/click info
 
 ### 5. Implement main app (`src/mcp-app.ts`)
@@ -223,7 +225,8 @@ No additional dependencies beyond what system-monitor-server uses.
 
 - Adapt system-monitor patterns (CSS variables, dark mode)
 - Ensure 600×600 fixed layout with no overflow
-- Style dropdowns, legend, and detail panel
+- Style dropdowns, pill-shaped legend toggles, and detail panel
+- Legend items have visible borders and hover effects for discoverability
 - Theme support (light/dark via prefers-color-scheme)
 
 ### 7. Test & Polish
@@ -241,3 +244,4 @@ No additional dependencies beyond what system-monitor-server uses.
 3. **Data refresh**: Cache dataset in memory for session consistency (realistic exploration experience)
 4. **Segment colors**: Business-appropriate palette (blues, teals, greens, indigo)
 5. **Framework**: Vanilla JS (no React) to match system-monitor-server pattern
+6. **Segment filtering**: Use legend toggles only (no separate dropdown) - reduces UI redundancy since legend clicks achieve the same filtering with better visual feedback
