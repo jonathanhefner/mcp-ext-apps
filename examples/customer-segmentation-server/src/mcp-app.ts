@@ -17,9 +17,6 @@ const log = {
 };
 
 // DOM element references
-const segmentFilter = document.getElementById(
-  "segment-filter",
-) as HTMLSelectElement;
 const xAxisSelect = document.getElementById("x-axis") as HTMLSelectElement;
 const yAxisSelect = document.getElementById("y-axis") as HTMLSelectElement;
 const sizeMetricSelect = document.getElementById(
@@ -39,7 +36,6 @@ interface AppState {
   xAxis: MetricName;
   yAxis: MetricName;
   sizeMetric: string;
-  segmentFilter: string;
   hiddenSegments: Set<string>;
   selectedCustomer: Customer | null;
 }
@@ -51,7 +47,6 @@ const state: AppState = {
   xAxis: "annualRevenue",
   yAxis: "engagementScore",
   sizeMetric: "off",
-  segmentFilter: "All",
   hiddenSegments: new Set(),
   selectedCustomer: null,
 };
@@ -104,17 +99,7 @@ function normalizeToRadius(
 
 // Get filtered customers based on current state
 function getFilteredCustomers(): Customer[] {
-  let customers = state.customers;
-
-  // Apply segment filter
-  if (state.segmentFilter !== "All") {
-    customers = customers.filter((c) => c.segment === state.segmentFilter);
-  }
-
-  // Apply legend visibility filter
-  customers = customers.filter((c) => !state.hiddenSegments.has(c.segment));
-
-  return customers;
+  return state.customers.filter((c) => !state.hiddenSegments.has(c.segment));
 }
 
 // Build chart datasets from customers
@@ -285,14 +270,9 @@ function updateChart(): void {
 
 // Render custom legend
 function renderLegend(): void {
-  // Count customers per segment based on segment filter
+  // Count customers per segment
   const counts = new Map<string, number>();
-  const customersToCount =
-    state.segmentFilter === "All"
-      ? state.customers
-      : state.customers.filter((c) => c.segment === state.segmentFilter);
-
-  for (const c of customersToCount) {
+  for (const c of state.customers) {
     counts.set(c.segment, (counts.get(c.segment) || 0) + 1);
   }
 
@@ -389,14 +369,6 @@ yAxisSelect.addEventListener("change", () => {
 
 sizeMetricSelect.addEventListener("change", () => {
   state.sizeMetric = sizeMetricSelect.value;
-  updateChart();
-});
-
-segmentFilter.addEventListener("change", () => {
-  state.segmentFilter = segmentFilter.value;
-  state.selectedCustomer = null;
-  resetDetailPanel();
-  renderLegend();
   updateChart();
 });
 
