@@ -13,7 +13,8 @@ import "./mcp-app.css";
 
 const APP_INFO = { name: "SaaS Scenario Modeler", version: "1.0.0" };
 
-const DEFAULT_INPUTS: ScenarioInputs = {
+// Local defaults for immediate render (should match server's DEFAULT_INPUTS)
+const FALLBACK_INPUTS: ScenarioInputs = {
   startingMRR: 50000,
   monthlyGrowthRate: 5,
   monthlyChurnRate: 3,
@@ -23,6 +24,7 @@ const DEFAULT_INPUTS: ScenarioInputs = {
 
 function ScenarioModeler() {
   const [templates, setTemplates] = useState<ScenarioTemplate[]>([]);
+  const [defaultInputs, setDefaultInputs] = useState<ScenarioInputs>(FALLBACK_INPUTS);
   const [toolResult, setToolResult] = useState<CallToolResult | null>(null);
 
   const { app, error } = useApp({
@@ -35,14 +37,18 @@ function ScenarioModeler() {
     },
   });
 
-  // Extract templates from tool result
+  // Extract templates and defaultInputs from tool result
   useEffect(() => {
     if (toolResult?.structuredContent) {
       const content = toolResult.structuredContent as {
         templates?: ScenarioTemplate[];
+        defaultInputs?: ScenarioInputs;
       };
       if (content.templates) {
         setTemplates(content.templates);
+      }
+      if (content.defaultInputs) {
+        setDefaultInputs(content.defaultInputs);
       }
     }
   }, [toolResult]);
@@ -63,15 +69,16 @@ function ScenarioModeler() {
     );
   }
 
-  return <ScenarioModelerInner templates={templates} />;
+  return <ScenarioModelerInner templates={templates} defaultInputs={defaultInputs} />;
 }
 
 interface ScenarioModelerInnerProps {
   templates: ScenarioTemplate[];
+  defaultInputs: ScenarioInputs;
 }
 
-function ScenarioModelerInner({ templates }: ScenarioModelerInnerProps) {
-  const [inputs, setInputs] = useState<ScenarioInputs>(DEFAULT_INPUTS);
+function ScenarioModelerInner({ templates, defaultInputs }: ScenarioModelerInnerProps) {
+  const [inputs, setInputs] = useState<ScenarioInputs>(FALLBACK_INPUTS);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
   // Derived state - recalculates when inputs change
@@ -96,9 +103,9 @@ function ScenarioModelerInner({ templates }: ScenarioModelerInnerProps) {
   );
 
   const handleReset = useCallback(() => {
-    setInputs(DEFAULT_INPUTS);
+    setInputs(defaultInputs);
     setSelectedTemplateId(null);
-  }, []);
+  }, [defaultInputs]);
 
   const handleTemplateSelect = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
