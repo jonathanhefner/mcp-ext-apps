@@ -4,6 +4,8 @@
 
 An interactive cohort retention analysis heatmap showing customer retention over time by signup month. Hover for details, click to drill down, with realistic generated retention data.
 
+**Framework**: React with `useApp` hook from `@modelcontextprotocol/ext-apps/react`
+
 **Target viewport**: 600×600 pixels (no vertical scroll, horizontal scroll allowed for extended time periods)
 
 ---
@@ -65,8 +67,8 @@ examples/cohort-heatmap-server/
 ├── mcp-app.html              # Entry point
 ├── src/
 │   ├── global.css            # Base styles
-│   ├── mcp-app.ts            # Main app (vanilla JS)
-│   ├── mcp-app.css           # App styles
+│   ├── mcp-app.tsx           # Main React app
+│   ├── mcp-app.module.css    # CSS modules for app styles
 │   └── vite-env.d.ts
 ├── dist/
 │   └── mcp-app.html          # Built output
@@ -81,12 +83,17 @@ examples/cohort-heatmap-server/
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "../..",
     "@modelcontextprotocol/sdk": "^1.22.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.2.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -97,7 +104,7 @@ examples/cohort-heatmap-server/
 }
 ```
 
-**Note**: No Chart.js needed — heatmap is implemented with CSS Grid for better control and simpler code.
+**Note**: No Chart.js needed — heatmap is implemented with CSS Grid for better control and simpler code. Uses React with the `useApp` hook from `@modelcontextprotocol/ext-apps/react`.
 
 ---
 
@@ -289,18 +296,26 @@ Metric: ${data.metric}, Period: ${data.periodType}`;
 
 ## Client Implementation
 
-### State Management
+### React App Structure
 
-```typescript
-interface AppState {
-  data: CohortData | null;
-  selectedMetric: "retention" | "revenue" | "active";
-  selectedPeriodType: "monthly" | "weekly";
-  highlightedCohort: number | null;
-  highlightedPeriod: number | null;
-  tooltipData: TooltipData | null;
-}
+```tsx
+import type { App } from "@modelcontextprotocol/ext-apps";
+import { useApp } from "@modelcontextprotocol/ext-apps/react";
+import { StrictMode, useCallback, useEffect, useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
+import styles from "./mcp-app.module.css";
 
+// Entry point
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <CohortHeatmapApp />
+  </StrictMode>,
+);
+```
+
+### State Management (React Hooks)
+
+```tsx
 interface TooltipData {
   x: number;
   y: number;
@@ -310,69 +325,152 @@ interface TooltipData {
   usersRetained: number;
   usersOriginal: number;
 }
+
+function CohortHeatmapApp() {
+  const { app, error } = useApp({
+    appInfo: { name: "Cohort Heatmap", version: "1.0.0" },
+    capabilities: {},
+  });
+
+  if (error) return <div className={styles.error}>ERROR: {error.message}</div>;
+  if (!app) return <div className={styles.loading}>Connecting...</div>;
+
+  return <CohortHeatmapInner app={app} />;
+}
+
+function CohortHeatmapInner({ app }: { app: App }) {
+  const [data, setData] = useState<CohortData | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<"retention" | "revenue" | "active">("retention");
+  const [selectedPeriodType, setSelectedPeriodType] = useState<"monthly" | "weekly">("monthly");
+  const [highlightedCohort, setHighlightedCohort] = useState<number | null>(null);
+  const [highlightedPeriod, setHighlightedPeriod] = useState<number | null>(null);
+  const [tooltipData, setTooltipData] = useState<TooltipData | null>(null);
+
+  // Fetch data when metric or period type changes
+  useEffect(() => {
+    fetchData();
+  }, [selectedMetric, selectedPeriodType]);
+
+  const fetchData = useCallback(async () => {
+    const result = await app.callServerTool({
+      name: "get-cohort-data",
+      arguments: {
+        metric: selectedMetric,
+        periodType: selectedPeriodType,
+        cohortCount: 12,
+        maxPeriods: 12,
+      },
+    });
+    setData(result.structuredContent as CohortData);
+  }, [app, selectedMetric, selectedPeriodType]);
+
+  const handleCellClick = useCallback((cohortIndex: number, periodIndex: number) => {
+    setHighlightedCohort(cohortIndex);
+    setHighlightedPeriod(periodIndex);
+  }, []);
+
+  return (
+    <main className={styles.container}>
+      <Header
+        selectedMetric={selectedMetric}
+        selectedPeriodType={selectedPeriodType}
+        onMetricChange={setSelectedMetric}
+        onPeriodTypeChange={setSelectedPeriodType}
+      />
+      {data && (
+        <HeatmapGrid
+          data={data}
+          highlightedCohort={highlightedCohort}
+          highlightedPeriod={highlightedPeriod}
+          onCellClick={handleCellClick}
+          onCellHover={setTooltipData}
+        />
+      )}
+      <Legend />
+      {tooltipData && <Tooltip {...tooltipData} />}
+    </main>
+  );
+}
 ```
 
-### Heatmap Rendering (CSS Grid)
+### Heatmap Component (CSS Grid)
 
-```typescript
-function renderHeatmap(data: CohortData): void {
-  const container = document.getElementById("heatmap-container")!;
-  container.innerHTML = "";
+```tsx
+interface HeatmapGridProps {
+  data: CohortData;
+  highlightedCohort: number | null;
+  highlightedPeriod: number | null;
+  onCellClick: (cohortIndex: number, periodIndex: number) => void;
+  onCellHover: (tooltip: TooltipData | null) => void;
+}
 
-  // Create grid container
-  const grid = document.createElement("div");
-  grid.className = "heatmap-grid";
-  grid.style.gridTemplateColumns = `120px repeat(${data.periods.length}, 48px)`;
+function HeatmapGrid({ data, highlightedCohort, highlightedPeriod, onCellClick, onCellHover }: HeatmapGridProps) {
+  const gridStyle = useMemo(() => ({
+    gridTemplateColumns: `120px repeat(${data.periods.length}, 48px)`,
+  }), [data.periods.length]);
 
-  // Header row: empty corner + period labels
-  const cornerCell = document.createElement("div");
-  cornerCell.className = "heatmap-header corner";
-  grid.appendChild(cornerCell);
+  return (
+    <div className={styles.heatmapWrapper}>
+      <div className={styles.heatmapGrid} style={gridStyle}>
+        {/* Header row: empty corner + period labels */}
+        <div className={styles.headerCorner} />
+        {data.periods.map((period, i) => (
+          <div
+            key={period}
+            className={`${styles.headerPeriod} ${highlightedPeriod === i ? styles.highlighted : ""}`}
+          >
+            {period}
+          </div>
+        ))}
 
-  data.periods.forEach((period, i) => {
-    const headerCell = document.createElement("div");
-    headerCell.className = "heatmap-header period";
-    headerCell.textContent = period;
-    headerCell.dataset.periodIndex = i.toString();
-    grid.appendChild(headerCell);
-  });
+        {/* Data rows */}
+        {data.cohorts.map((cohort, cohortIndex) => (
+          <CohortRow
+            key={cohort.cohortId}
+            cohort={cohort}
+            cohortIndex={cohortIndex}
+            periodCount={data.periods.length}
+            periodLabels={data.periodLabels}
+            isHighlighted={highlightedCohort === cohortIndex}
+            highlightedPeriod={highlightedPeriod}
+            onCellClick={onCellClick}
+            onCellHover={onCellHover}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 
-  // Data rows
-  data.cohorts.forEach((cohort, cohortIndex) => {
-    // Row label
-    const labelCell = document.createElement("div");
-    labelCell.className = "heatmap-label";
-    labelCell.innerHTML = `
-      <span class="cohort-name">${cohort.cohortLabel}</span>
-      <span class="cohort-size">${formatNumber(cohort.originalUsers)}</span>
-    `;
-    grid.appendChild(labelCell);
+function CohortRow({ cohort, cohortIndex, periodCount, periodLabels, isHighlighted, highlightedPeriod, onCellClick, onCellHover }: CohortRowProps) {
+  return (
+    <>
+      <div className={`${styles.label} ${isHighlighted ? styles.highlighted : ""}`}>
+        <span className={styles.cohortName}>{cohort.cohortLabel}</span>
+        <span className={styles.cohortSize}>{formatNumber(cohort.originalUsers)}</span>
+      </div>
+      {Array.from({ length: periodCount }, (_, p) => {
+        const cellData = cohort.cells.find(c => c.periodIndex === p);
+        const isCellHighlighted = isHighlighted || highlightedPeriod === p;
 
-    // Data cells
-    for (let p = 0; p < data.periods.length; p++) {
-      const cell = document.createElement("div");
-      cell.className = "heatmap-cell";
-      cell.dataset.cohortIndex = cohortIndex.toString();
-      cell.dataset.periodIndex = p.toString();
+        if (!cellData) {
+          return <div key={p} className={styles.cellEmpty} />;
+        }
 
-      const cellData = cohort.cells.find(c => c.periodIndex === p);
-
-      if (cellData) {
-        const color = getRetentionColor(cellData.retention);
-        cell.style.backgroundColor = color;
-        cell.textContent = `${Math.round(cellData.retention * 100)}`;
-        cell.addEventListener("mouseenter", (e) => showTooltip(e, cohort, cellData, data.periodLabels[p]));
-        cell.addEventListener("mouseleave", hideTooltip);
-        cell.addEventListener("click", () => selectCell(cohortIndex, p));
-      } else {
-        cell.className += " empty";
-      }
-
-      grid.appendChild(cell);
-    }
-  });
-
-  container.appendChild(grid);
+        return (
+          <HeatmapCell
+            key={p}
+            cellData={cellData}
+            cohort={cohort}
+            periodLabel={periodLabels[p]}
+            isHighlighted={isCellHighlighted}
+            onClick={() => onCellClick(cohortIndex, p)}
+            onHover={onCellHover}
+          />
+        );
+      })}
+    </>
+  );
 }
 ```
 
@@ -403,115 +501,152 @@ function getRetentionColorDiscrete(retention: number): string {
 }
 ```
 
-### Tooltip Implementation
+### HeatmapCell Component
 
-```typescript
-function showTooltip(event: MouseEvent, cohort: CohortRow, cell: CohortCell, periodLabel: string): void {
-  const tooltip = document.getElementById("tooltip")!;
-
-  tooltip.innerHTML = `
-    <div class="tooltip-header">${cohort.cohortLabel} — ${periodLabel}</div>
-    <div class="tooltip-row">
-      <span class="tooltip-label">Retention:</span>
-      <span class="tooltip-value">${(cell.retention * 100).toFixed(1)}%</span>
-    </div>
-    <div class="tooltip-row">
-      <span class="tooltip-label">Users:</span>
-      <span class="tooltip-value">${formatNumber(cell.usersRetained)} / ${formatNumber(cell.usersOriginal)}</span>
-    </div>
-  `;
-
-  // Position tooltip near cursor
-  const rect = (event.target as HTMLElement).getBoundingClientRect();
-  const containerRect = document.getElementById("app-container")!.getBoundingClientRect();
-
-  let left = rect.right + 8;
-  let top = rect.top;
-
-  // Keep tooltip within container
-  if (left + 200 > containerRect.right) {
-    left = rect.left - 208;
-  }
-
-  tooltip.style.left = `${left}px`;
-  tooltip.style.top = `${top}px`;
-  tooltip.classList.add("visible");
+```tsx
+interface HeatmapCellProps {
+  cellData: CohortCell;
+  cohort: CohortRow;
+  periodLabel: string;
+  isHighlighted: boolean;
+  onClick: () => void;
+  onHover: (tooltip: TooltipData | null) => void;
 }
 
-function hideTooltip(): void {
-  document.getElementById("tooltip")!.classList.remove("visible");
+function HeatmapCell({ cellData, cohort, periodLabel, isHighlighted, onClick, onHover }: HeatmapCellProps) {
+  const backgroundColor = useMemo(() => getRetentionColor(cellData.retention), [cellData.retention]);
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    onHover({
+      x: rect.right + 8,
+      y: rect.top,
+      cohortLabel: cohort.cohortLabel,
+      periodLabel,
+      retention: cellData.retention,
+      usersRetained: cellData.usersRetained,
+      usersOriginal: cellData.usersOriginal,
+    });
+  }, [cellData, cohort, periodLabel, onHover]);
+
+  const handleMouseLeave = useCallback(() => {
+    onHover(null);
+  }, [onHover]);
+
+  return (
+    <div
+      className={`${styles.cell} ${isHighlighted ? styles.highlighted : ""}`}
+      style={{ backgroundColor }}
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {Math.round(cellData.retention * 100)}
+    </div>
+  );
 }
 ```
 
-### Row/Column Highlighting
+### Tooltip Component
 
-```typescript
-function selectCell(cohortIndex: number, periodIndex: number): void {
-  // Clear previous highlights
-  document.querySelectorAll(".heatmap-cell.highlighted, .heatmap-label.highlighted, .heatmap-header.highlighted")
-    .forEach(el => el.classList.remove("highlighted"));
+```tsx
+function Tooltip({ x, y, cohortLabel, periodLabel, retention, usersRetained, usersOriginal }: TooltipData) {
+  // Adjust position to keep tooltip in viewport
+  const style = useMemo(() => {
+    let left = x;
+    if (left + 200 > window.innerWidth) {
+      left = x - 216;  // Flip to left side of cell
+    }
+    return { left, top: y };
+  }, [x, y]);
 
-  // Highlight entire row
-  document.querySelectorAll(`[data-cohort-index="${cohortIndex}"]`)
-    .forEach(el => el.classList.add("highlighted"));
-
-  // Highlight entire column
-  document.querySelectorAll(`[data-period-index="${periodIndex}"]`)
-    .forEach(el => el.classList.add("highlighted"));
-
-  state.highlightedCohort = cohortIndex;
-  state.highlightedPeriod = periodIndex;
+  return (
+    <div className={styles.tooltip} style={style}>
+      <div className={styles.tooltipHeader}>{cohortLabel} — {periodLabel}</div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.tooltipLabel}>Retention:</span>
+        <span className={styles.tooltipValue}>{(retention * 100).toFixed(1)}%</span>
+      </div>
+      <div className={styles.tooltipRow}>
+        <span className={styles.tooltipLabel}>Users:</span>
+        <span className={styles.tooltipValue}>{formatNumber(usersRetained)} / {formatNumber(usersOriginal)}</span>
+      </div>
+    </div>
+  );
 }
 ```
 
-### Dropdown Controls
+### Header & Controls Component
 
-```typescript
-function createControls(): void {
-  const controlsContainer = document.getElementById("controls")!;
-
-  // Metric selector
-  const metricSelect = document.createElement("select");
-  metricSelect.id = "metric-select";
-  metricSelect.innerHTML = `
-    <option value="retention">Retention %</option>
-    <option value="revenue">Revenue Retention</option>
-    <option value="active">Active Users</option>
-  `;
-  metricSelect.addEventListener("change", () => {
-    state.selectedMetric = metricSelect.value as typeof state.selectedMetric;
-    fetchData();
-  });
-
-  // Period selector
-  const periodSelect = document.createElement("select");
-  periodSelect.id = "period-select";
-  periodSelect.innerHTML = `
-    <option value="monthly">Monthly</option>
-    <option value="weekly">Weekly</option>
-  `;
-  periodSelect.addEventListener("change", () => {
-    state.selectedPeriodType = periodSelect.value as typeof state.selectedPeriodType;
-    fetchData();
-  });
-
-  controlsContainer.appendChild(createLabeledControl("Metric:", metricSelect));
-  controlsContainer.appendChild(createLabeledControl("Period:", periodSelect));
+```tsx
+interface HeaderProps {
+  selectedMetric: "retention" | "revenue" | "active";
+  selectedPeriodType: "monthly" | "weekly";
+  onMetricChange: (metric: "retention" | "revenue" | "active") => void;
+  onPeriodTypeChange: (periodType: "monthly" | "weekly") => void;
 }
 
-async function fetchData(): Promise<void> {
-  const result = await app.callServerTool({
-    name: "get-cohort-data",
-    arguments: {
-      metric: state.selectedMetric,
-      periodType: state.selectedPeriodType,
-      cohortCount: 12,
-      maxPeriods: 12,
-    },
-  });
+function Header({ selectedMetric, selectedPeriodType, onMetricChange, onPeriodTypeChange }: HeaderProps) {
+  return (
+    <header className={styles.header}>
+      <h1 className={styles.title}>Cohort Retention Analysis</h1>
+      <div className={styles.controls}>
+        <label className={styles.control}>
+          <span>Metric:</span>
+          <select
+            value={selectedMetric}
+            onChange={(e) => onMetricChange(e.target.value as typeof selectedMetric)}
+          >
+            <option value="retention">Retention %</option>
+            <option value="revenue">Revenue Retention</option>
+            <option value="active">Active Users</option>
+          </select>
+        </label>
+        <label className={styles.control}>
+          <span>Period:</span>
+          <select
+            value={selectedPeriodType}
+            onChange={(e) => onPeriodTypeChange(e.target.value as typeof selectedPeriodType)}
+          >
+            <option value="monthly">Monthly</option>
+            <option value="weekly">Weekly</option>
+          </select>
+        </label>
+      </div>
+    </header>
+  );
+}
+```
 
-  state.data = result.structuredContent as CohortData;
-  renderHeatmap(state.data);
+### Legend Component
+
+```tsx
+function Legend() {
+  return (
+    <div className={styles.legend}>
+      <span className={styles.legendItem}>
+        <span className={styles.legendColor} style={{ backgroundColor: getRetentionColor(0.9) }} />
+        80-100%
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.legendColor} style={{ backgroundColor: getRetentionColor(0.65) }} />
+        50-79%
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.legendColor} style={{ backgroundColor: getRetentionColor(0.35) }} />
+        20-49%
+      </span>
+      <span className={styles.legendItem}>
+        <span className={styles.legendColor} style={{ backgroundColor: getRetentionColor(0.1) }} />
+        0-19%
+      </span>
+    </div>
+  );
+}
+
+// Utility function
+function formatNumber(n: number): string {
+  return n.toLocaleString();
 }
 ```
 
@@ -519,26 +654,42 @@ async function fetchData(): Promise<void> {
 
 ## Styling
 
-### CSS Variables
+### global.css (Base Styles)
 
 ```css
-:root {
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+}
+```
+
+### mcp-app.module.css (CSS Modules)
+
+```css
+/* CSS Variables for theming */
+.container {
   --color-bg: #ffffff;
   --color-text: #1f2937;
   --color-text-muted: #6b7280;
   --color-border: #e5e7eb;
 
   /* Retention colors */
-  --color-retention-high: #22c55e;      /* 80-100% */
-  --color-retention-medium: #eab308;    /* 50-79% */
-  --color-retention-low: #f97316;       /* 20-49% */
-  --color-retention-critical: #ef4444;  /* 0-19% */
+  --color-retention-high: #22c55e;
+  --color-retention-medium: #eab308;
+  --color-retention-low: #f97316;
+  --color-retention-critical: #ef4444;
 
   --color-highlight: rgba(59, 130, 246, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  .container {
     --color-bg: #111827;
     --color-text: #f9fafb;
     --color-text-muted: #9ca3af;
@@ -546,12 +697,9 @@ async function fetchData(): Promise<void> {
     --color-highlight: rgba(96, 165, 250, 0.25);
   }
 }
-```
 
-### Layout
-
-```css
-.app-container {
+/* Layout */
+.container {
   display: flex;
   flex-direction: column;
   height: 600px;
@@ -559,6 +707,8 @@ async function fetchData(): Promise<void> {
   overflow: hidden;
   padding: 16px;
   gap: 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
 .header {
@@ -568,36 +718,91 @@ async function fetchData(): Promise<void> {
   flex-shrink: 0;
 }
 
+.title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
 .controls {
   display: flex;
   gap: 16px;
 }
 
-.heatmap-wrapper {
-  flex: 1;
-  overflow-x: auto;    /* Horizontal scroll for many periods */
-  overflow-y: hidden;  /* No vertical scroll */
+.control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+
+  select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-size: inherit;
+  }
 }
 
-.heatmap-grid {
+/* Heatmap Grid */
+.heatmapWrapper {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.heatmapGrid {
   display: grid;
   gap: 2px;
-  width: max-content;  /* Allow horizontal expansion */
+  width: max-content;
 }
 
-.legend {
-  flex-shrink: 0;
+.headerCorner {
+  width: 120px;
+}
+
+.headerPeriod {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 16px;
   font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  height: 24px;
 }
-```
 
-### Heatmap Cells
+.headerPeriod.highlighted {
+  background: var(--color-highlight);
+  border-radius: 4px;
+}
 
-```css
-.heatmap-cell {
+/* Row Labels */
+.label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 8px;
+  width: 120px;
+}
+
+.label.highlighted {
+  background: var(--color-highlight);
+  border-radius: 4px;
+}
+
+.cohortName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cohortSize {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+/* Data Cells */
+.cell {
   width: 48px;
   height: 36px;
   display: flex;
@@ -612,52 +817,49 @@ async function fetchData(): Promise<void> {
   transition: transform 0.1s, box-shadow 0.1s;
 }
 
-.heatmap-cell:hover {
+.cell:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
 
-.heatmap-cell.empty {
-  background-color: var(--color-border);
-  cursor: default;
-}
-
-.heatmap-cell.highlighted {
+.cell.highlighted {
   outline: 2px solid var(--color-text);
   outline-offset: 1px;
 }
 
-.heatmap-label {
+.cellEmpty {
+  width: 48px;
+  height: 36px;
+  background-color: var(--color-border);
+  border-radius: 4px;
+  opacity: 0.3;
+}
+
+/* Legend */
+.legend {
+  flex-shrink: 0;
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  padding-right: 8px;
+  gap: 16px;
+  font-size: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
 }
 
-.heatmap-label .cohort-name {
-  font-weight: 600;
-  font-size: 13px;
-}
-
-.heatmap-label .cohort-size {
-  font-size: 11px;
-  color: var(--color-text-muted);
-}
-
-.heatmap-header {
+.legendItem {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-muted);
+  gap: 6px;
 }
-```
 
-### Tooltip
+.legendColor {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
 
-```css
+/* Tooltip */
 .tooltip {
   position: fixed;
   background: var(--color-bg);
@@ -666,37 +868,44 @@ async function fetchData(): Promise<void> {
   padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
   z-index: 100;
   min-width: 180px;
 }
 
-.tooltip.visible {
-  opacity: 1;
-}
-
-.tooltip-header {
+.tooltipHeader {
   font-weight: 600;
   margin-bottom: 8px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
 }
 
-.tooltip-row {
+.tooltipRow {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
   margin-top: 4px;
 }
 
-.tooltip-label {
+.tooltipLabel {
   color: var(--color-text-muted);
 }
 
-.tooltip-value {
+.tooltipValue {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+/* Loading/Error states */
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+}
+
+.error {
+  color: var(--color-retention-critical);
 }
 ```
 
@@ -706,9 +915,9 @@ async function fetchData(): Promise<void> {
 
 ### Phase 1: Setup
 - [ ] Create directory structure
-- [ ] Set up `package.json` with dependencies
-- [ ] Configure `tsconfig.json` and `vite.config.ts`
-- [ ] Create base HTML entry point
+- [ ] Set up `package.json` with React dependencies
+- [ ] Configure `tsconfig.json` and `vite.config.ts` (with React plugin)
+- [ ] Create `mcp-app.html` entry point with root div
 
 ### Phase 2: Server
 - [ ] Implement retention curve generator
@@ -716,26 +925,28 @@ async function fetchData(): Promise<void> {
 - [ ] Register UI resource
 - [ ] Test data generation produces realistic curves
 
-### Phase 3: Client Core
-- [ ] Set up App connection
-- [ ] Fetch data on load
-- [ ] Implement state management
+### Phase 3: React App Core
+- [ ] Set up React entry point with `createRoot`
+- [ ] Create `CohortHeatmapApp` component with `useApp` hook
+- [ ] Create `CohortHeatmapInner` component with state hooks
+- [ ] Implement data fetching with `useEffect`/`useCallback`
 
-### Phase 4: Heatmap Rendering
-- [ ] Create CSS Grid layout
-- [ ] Implement color scale function
-- [ ] Render cohort labels and period headers
-- [ ] Render data cells with colors
+### Phase 4: React Components
+- [ ] Create `HeatmapGrid` component (CSS Grid layout)
+- [ ] Create `CohortRow` component
+- [ ] Create `HeatmapCell` component with color scale
+- [ ] Create `Header` component with dropdowns
+- [ ] Create `Legend` component
+- [ ] Create `Tooltip` component
 
 ### Phase 5: Interactivity
-- [ ] Implement tooltip on hover
-- [ ] Implement row/column highlighting on click
-- [ ] Wire dropdown controls to data refresh
+- [ ] Implement tooltip on hover via state
+- [ ] Implement row/column highlighting via state
+- [ ] Wire dropdown controls to re-fetch data
 - [ ] Add horizontal scroll behavior
 
 ### Phase 6: Polish
-- [ ] Add dark mode support
-- [ ] Create color legend
+- [ ] Add dark mode support via CSS variables
 - [ ] Test 600×600 fit
 - [ ] Write README.md
 
@@ -746,9 +957,10 @@ async function fetchData(): Promise<void> {
 | Component | Lines of Code | Difficulty |
 |-----------|---------------|------------|
 | server.ts | ~120 | Medium |
-| mcp-app.ts | ~250 | Medium |
-| mcp-app.css | ~180 | Low |
-| **Total** | **~550** | **Medium** |
+| mcp-app.tsx | ~280 | Medium |
+| mcp-app.module.css | ~200 | Low |
+| global.css | ~15 | Low |
+| **Total** | **~615** | **Medium** |
 
 ---
 
