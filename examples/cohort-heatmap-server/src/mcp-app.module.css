@@ -1,36 +1,31 @@
-:root {
+/* CSS Variables for theming */
+.container {
   --color-bg: #ffffff;
   --color-text: #1f2937;
   --color-text-muted: #6b7280;
   --color-border: #e5e7eb;
-  --color-surface: #f9fafb;
 
-  /* Retention legend colors */
+  /* Retention colors */
   --color-retention-high: #22c55e;
   --color-retention-medium: #eab308;
   --color-retention-low: #f97316;
   --color-retention-critical: #ef4444;
 
-  --color-highlight: rgba(59, 130, 246, 0.25);
+  --color-highlight: rgba(59, 130, 246, 0.2);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  .container {
     --color-bg: #111827;
     --color-text: #f9fafb;
     --color-text-muted: #9ca3af;
     --color-border: #374151;
-    --color-surface: #1f2937;
-    --color-highlight: rgba(96, 165, 250, 0.3);
+    --color-highlight: rgba(96, 165, 250, 0.25);
   }
 }
 
-body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-}
-
-.app-container {
+/* Layout */
+.container {
   display: flex;
   flex-direction: column;
   height: 600px;
@@ -38,9 +33,10 @@ body {
   overflow: hidden;
   padding: 16px;
   gap: 12px;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-/* Header */
 .header {
   display: flex;
   justify-content: space-between;
@@ -54,128 +50,85 @@ body {
   margin: 0;
 }
 
-/* Controls */
 .controls {
   display: flex;
   gap: 16px;
 }
 
-.control-group {
+.control {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  font-size: 13px;
 }
 
-.control-label {
-  font-size: 13px;
-  color: var(--color-text-muted);
-}
-
-.control-select {
-  font-size: 13px;
+.control select {
   padding: 4px 8px;
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  background-color: var(--color-surface);
+  background: var(--color-bg);
   color: var(--color-text);
-  cursor: pointer;
+  font-size: inherit;
 }
 
-.control-select:focus {
-  outline: 2px solid var(--color-highlight);
-  outline-offset: 1px;
-}
-
-/* Heatmap wrapper */
-.heatmap-wrapper {
+/* Heatmap Grid */
+.heatmapWrapper {
   flex: 1;
   overflow-x: auto;
   overflow-y: hidden;
 }
 
-.heatmap-container {
-  min-height: 100%;
-  display: flex;
-  align-items: flex-start;
-}
-
-/* Loading/Error states */
-.loading,
-.error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 200px;
-  font-size: 14px;
-  color: var(--color-text-muted);
-}
-
-.error {
-  color: var(--color-retention-critical);
-}
-
-/* Heatmap grid */
-.heatmap-grid {
+.heatmapGrid {
   display: grid;
   gap: 2px;
   width: max-content;
 }
 
-/* Header cells */
-.heatmap-header {
+.headerCorner {
+  width: 120px;
+}
+
+.headerPeriod {
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
   color: var(--color-text-muted);
-  height: 32px;
+  height: 24px;
 }
 
-.heatmap-header.corner {
-  /* Empty corner cell */
-}
-
-.heatmap-header.period {
-  width: 48px;
-}
-
-.heatmap-header.highlighted {
-  color: var(--color-text);
-  background-color: var(--color-highlight);
+.headerPeriod.highlighted {
+  background: var(--color-highlight);
   border-radius: 4px;
 }
 
-/* Row labels */
-.heatmap-label {
+/* Row Labels */
+.label {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-right: 12px;
-  height: 36px;
+  padding-right: 8px;
+  width: 120px;
 }
 
-.heatmap-label.highlighted {
-  background-color: var(--color-highlight);
-  border-radius: 4px 0 0 4px;
-  padding-left: 4px;
+.label.highlighted {
+  background: var(--color-highlight);
+  border-radius: 4px;
 }
 
-.heatmap-label .cohort-name {
+.cohortName {
   font-weight: 600;
   font-size: 13px;
-  line-height: 1.2;
 }
 
-.heatmap-label .cohort-size {
+.cohortSize {
   font-size: 11px;
   color: var(--color-text-muted);
-  line-height: 1.2;
 }
 
-/* Data cells */
-.heatmap-cell {
+/* Data Cells */
+.cell {
   width: 48px;
   height: 36px;
   display: flex;
@@ -188,29 +141,25 @@ body {
   border-radius: 4px;
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
-  position: relative;
 }
 
-.heatmap-cell:hover {
+.cell:hover {
   transform: scale(1.1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 10;
 }
 
-.heatmap-cell.empty {
-  background-color: var(--color-border);
-  cursor: default;
-  color: transparent;
-}
-
-.heatmap-cell.empty:hover {
-  transform: none;
-  box-shadow: none;
-}
-
-.heatmap-cell.highlighted {
+.cell.highlighted {
   outline: 2px solid var(--color-text);
   outline-offset: 1px;
+}
+
+.cellEmpty {
+  width: 48px;
+  height: 36px;
+  background-color: var(--color-border);
+  border-radius: 4px;
+  opacity: 0.3;
 }
 
 /* Legend */
@@ -218,39 +167,22 @@ body {
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
+  font-size: 12px;
   padding-top: 8px;
   border-top: 1px solid var(--color-border);
 }
 
-.legend-item {
+.legendItem {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: var(--color-text-muted);
 }
 
-.legend-swatch {
+.legendColor {
   width: 16px;
   height: 16px;
   border-radius: 3px;
-}
-
-.legend-swatch.high {
-  background-color: var(--color-retention-high);
-}
-
-.legend-swatch.medium {
-  background-color: var(--color-retention-medium);
-}
-
-.legend-swatch.low {
-  background-color: var(--color-retention-low);
-}
-
-.legend-swatch.critical {
-  background-color: var(--color-retention-critical);
 }
 
 /* Tooltip */
@@ -262,36 +194,42 @@ body {
   padding: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
   z-index: 100;
   min-width: 180px;
 }
 
-.tooltip.visible {
-  opacity: 1;
-}
-
-.tooltip-header {
+.tooltipHeader {
   font-weight: 600;
-  font-size: 13px;
   margin-bottom: 8px;
   padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
 }
 
-.tooltip-row {
+.tooltipRow {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
   margin-top: 4px;
 }
 
-.tooltip-label {
+.tooltipLabel {
   color: var(--color-text-muted);
 }
 
-.tooltip-value {
+.tooltipValue {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+}
+
+/* Loading/Error states */
+.loading, .error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 14px;
+}
+
+.error {
+  color: var(--color-retention-critical);
 }
