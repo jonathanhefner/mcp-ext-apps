@@ -1,6 +1,6 @@
 import { useApp } from "@modelcontextprotocol/ext-apps/react";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { StrictMode, useState, useMemo, useCallback, useEffect } from "react";
+import { StrictMode, useState, useMemo, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { SliderRow } from "./components/SliderRow.tsx";
 import { MetricCard } from "./components/MetricCard.tsx";
@@ -10,6 +10,18 @@ import { formatCurrency, formatPercent, formatCurrencySlider } from "./lib/forma
 import type { ScenarioInputs, ScenarioTemplate, ScenarioSummary } from "./types.ts";
 import "./global.css";
 import "./mcp-app.css";
+
+interface CallToolResultData {
+  templates?: ScenarioTemplate[];
+  defaultInputs?: ScenarioInputs;
+}
+
+/** Extract templates and defaultInputs from tool result structuredContent */
+function extractResultData(result: CallToolResult): CallToolResultData {
+  if (!result.structuredContent) return {};
+  const { templates, defaultInputs } = result.structuredContent as CallToolResultData;
+  return { templates, defaultInputs };
+}
 
 const APP_INFO = { name: "SaaS Scenario Modeler", version: "1.0.0" };
 
@@ -25,33 +37,18 @@ const FALLBACK_INPUTS: ScenarioInputs = {
 function ScenarioModeler() {
   const [templates, setTemplates] = useState<ScenarioTemplate[]>([]);
   const [defaultInputs, setDefaultInputs] = useState<ScenarioInputs>(FALLBACK_INPUTS);
-  const [toolResult, setToolResult] = useState<CallToolResult | null>(null);
 
   const { app, error } = useApp({
     appInfo: APP_INFO,
     capabilities: {},
     onAppCreated: (app) => {
       app.ontoolresult = async (result) => {
-        setToolResult(result);
+        const { templates, defaultInputs } = extractResultData(result);
+        if (templates) setTemplates(templates);
+        if (defaultInputs) setDefaultInputs(defaultInputs);
       };
     },
   });
-
-  // Extract templates and defaultInputs from tool result
-  useEffect(() => {
-    if (toolResult?.structuredContent) {
-      const content = toolResult.structuredContent as {
-        templates?: ScenarioTemplate[];
-        defaultInputs?: ScenarioInputs;
-      };
-      if (content.templates) {
-        setTemplates(content.templates);
-      }
-      if (content.defaultInputs) {
-        setDefaultInputs(content.defaultInputs);
-      }
-    }
-  }, [toolResult]);
 
   if (error) {
     return (
