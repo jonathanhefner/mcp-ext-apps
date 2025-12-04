@@ -313,14 +313,16 @@ function createSliderRow(
       <canvas class="sparkline" width="50" height="28"></canvas>
       <span class="sparkline-tooltip">${tooltipText}</span>
     </div>
-    <input
-      type="range"
-      class="slider"
-      min="0"
-      max="100"
-      step="1"
-      value="${allocation}"
-    />
+    <div class="slider-container">
+      <input
+        type="range"
+        class="slider"
+        min="0"
+        max="100"
+        step="1"
+        value="${allocation}"
+      />
+    </div>
     <span class="slider-value">
       <span class="percent">${allocation.toFixed(1)}%</span>
       <span class="amount">${formatCurrency(amount)}</span>
