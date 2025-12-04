@@ -116,6 +116,12 @@ function calculateSummary(
   };
 }
 
+function calculateScenario(inputs: ScenarioInputs) {
+  const projections = calculateProjections(inputs);
+  const summary = calculateSummary(projections, inputs);
+  return { projections, summary };
+}
+
 function buildTemplate(
   id: string,
   name: string,
@@ -124,8 +130,7 @@ function buildTemplate(
   parameters: ScenarioInputs,
   keyInsight: string
 ): ScenarioTemplate {
-  const projections = calculateProjections(parameters);
-  const summary = calculateSummary(projections, parameters);
+  const { projections, summary } = calculateScenario(parameters);
   return { id, name, description, icon, parameters, projections, summary, keyInsight };
 }
 
@@ -315,48 +320,31 @@ const ScenarioTemplateSchema = z.object({
       },
       _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
     },
-    async (args: {
-      customInputs?: ScenarioInputs;
-    }): Promise<CallToolResult> => {
-      const result: {
-        templates: ScenarioTemplate[];
-        defaultInputs: ScenarioInputs;
-        customProjections?: MonthlyProjection[];
-        customSummary?: ScenarioSummary;
-      } = {
-        templates: SCENARIO_TEMPLATES,
-        defaultInputs: DEFAULT_INPUTS,
-      };
+    async (args: { customInputs?: ScenarioInputs }): Promise<CallToolResult> => {
+      const customScenario = args.customInputs
+        ? calculateScenario(args.customInputs)
+        : undefined;
 
-      if (args.customInputs) {
-        result.customProjections = calculateProjections(args.customInputs);
-        result.customSummary = calculateSummary(
-          result.customProjections,
-          args.customInputs
-        );
-      }
-
-      // Build human-readable text output
-      const textParts: string[] = [
+      const text = [
         "SaaS Scenario Modeler",
-        "=" .repeat(40),
+        "=".repeat(40),
         "",
         "Available Templates:",
-        ...SCENARIO_TEMPLATES.map(
-          (t) => `  ${t.icon} ${t.name}: ${t.description}`
-        ),
+        ...SCENARIO_TEMPLATES.map((t) => `  ${t.icon} ${t.name}: ${t.description}`),
         "",
-      ];
-
-      if (args.customInputs && result.customSummary) {
-        textParts.push(formatScenarioSummary(result.customSummary, "Custom Scenario"));
-      } else {
-        textParts.push("Use customInputs parameter to compute projections for a specific scenario.");
-      }
+        customScenario
+          ? formatScenarioSummary(customScenario.summary, "Custom Scenario")
+          : "Use customInputs parameter to compute projections for a specific scenario.",
+      ].join("\n");
 
       return {
-        content: [{ type: "text", text: textParts.join("\n") }],
-        structuredContent: result,
+        content: [{ type: "text", text }],
+        structuredContent: {
+          templates: SCENARIO_TEMPLATES,
+          defaultInputs: DEFAULT_INPUTS,
+          customProjections: customScenario?.projections,
+          customSummary: customScenario?.summary,
+        },
       };
     }
   );
