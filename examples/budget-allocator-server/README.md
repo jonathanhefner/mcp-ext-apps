@@ -1,64 +1,49 @@
-# Budget Allocator Server
+# Example: Budget Allocator App
 
 An interactive budget allocation tool demonstrating real-time data visualization with MCP Apps.
 
 ## Features
 
-- **Interactive sliders** - Adjust budget allocation across 5 categories
-- **Donut chart** - Real-time visualization of allocation distribution
-- **Sparkline trends** - 24-month historical allocation data per category
-- **Percentile badges** - Compare your allocation vs. industry benchmarks
-- **Stage selector** - Switch between Seed, Series A, Series B, and Growth benchmarks
-- **Budget presets** - Quick selection of $50K, $100K, $250K, or $500K totals
-
-## Why Server Data?
-
-This example demonstrates legitimate server-side data that **cannot** be computed client-side:
-
-1. **Historical data** (~120 data points) - 24 months of allocation history that would come from a database in a real application
-2. **Industry benchmarks** (~60 data points) - Aggregated percentile data by company stage
-
-Total: ~200 data points from server, showcasing meaningful server→client data flow.
+- **Interactive Sliders**: Adjust budget allocation across 5 categories (Marketing, Engineering, Operations, Sales, R&D)
+- **Donut Chart**: Real-time visualization of allocation distribution using Chart.js
+- **Sparkline Trends**: 24-month historical allocation data per category
+- **Percentile Badges**: Compare your allocation vs. industry benchmarks
+- **Stage Selector**: Switch between Seed, Series A, Series B, and Growth benchmarks
+- **Budget Presets**: Quick selection of $50K, $100K, $250K, or $500K totals
 
 ## Running
 
-```bash
-# Install dependencies
-npm install
+1. Install dependencies:
 
-# Build UI and start server
-npm start
+   ```bash
+   npm install
+   ```
 
-# Or for development with hot reload
-npm run dev
-```
+2. Build and start the server:
 
-The server will be available at `http://localhost:3001/mcp`.
+   ```bash
+   npm start
+   ```
+
+   The server will listen on `http://localhost:3001/mcp`.
+
+3. View using the [`basic-host`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-host) example or another MCP Apps-compatible host.
 
 ## Architecture
 
-```
-budget-allocator-server/
-├── server.ts          # MCP server with data generation
-├── mcp-app.html       # HTML entry point
-└── src/
-    ├── mcp-app.ts     # Client app (vanilla JS + Chart.js)
-    ├── mcp-app.css    # App styles
-    └── global.css     # Base styles
-```
+### Server (`server.ts`)
 
-## Data Model
+Exposes a single `get-budget-data` tool that returns:
 
-### Categories
-- Marketing, Engineering, Operations, Sales, R&D
-- Each with default allocation, color, and historical trend
+- Category definitions with colors and default allocations
+- Historical data (~120 data points) - 24 months of allocation history per category
+- Industry benchmarks (~60 data points) - Aggregated percentile data by company stage
 
-### Historical Data
-- 24 months of allocation percentages per category
-- Generated with seeded randomness for reproducibility
-- Includes realistic drift trends
+The tool is linked to a UI resource via `_meta[RESOURCE_URI_META_KEY]`.
 
-### Benchmarks
-- Four company stages: Seed, Series A, Series B, Growth
-- Three percentiles per category: p25, p50, p75
-- Used to compute percentile ranking of current allocation
+### App (`src/mcp-app.ts`)
+
+- Uses Chart.js for the donut chart visualization
+- Renders sparkline trends using inline SVG
+- Computes percentile rankings client-side from benchmark data
+- Updates all UI elements reactively on slider changes
