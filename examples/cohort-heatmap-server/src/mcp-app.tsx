@@ -205,7 +205,7 @@ interface HeatmapGridProps {
 
 function HeatmapGrid({ data, highlightedCohort, highlightedPeriod, onCellClick, onCellHover }: HeatmapGridProps) {
   const gridStyle = useMemo(() => ({
-    gridTemplateColumns: `120px repeat(${data.periods.length}, 48px)`,
+    gridTemplateColumns: `120px repeat(${data.periods.length}, 44px)`,
   }), [data.periods.length]);
 
   return (
