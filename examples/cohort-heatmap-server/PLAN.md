@@ -453,7 +453,7 @@ interface HeatmapGridProps {
 
 function HeatmapGrid({ data, highlightedCohort, highlightedPeriod, onCellClick, onCellHover }: HeatmapGridProps) {
   const gridStyle = useMemo(() => ({
-    gridTemplateColumns: `120px repeat(${data.periods.length}, 48px)`,
+    gridTemplateColumns: `120px repeat(${data.periods.length}, 44px)`,
   }), [data.periods.length]);
 
   return (
@@ -752,8 +752,8 @@ html, body {
   height: 600px;
   max-height: 600px;
   overflow: hidden;
-  padding: 16px;
-  gap: 12px;
+  padding: 12px;
+  gap: 8px;
   background: var(--color-bg);
   color: var(--color-text);
 }
@@ -763,17 +763,20 @@ html, body {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   margin: 0;
+  white-space: nowrap;
 }
 
 .controls {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .control {
@@ -813,10 +816,10 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--color-text-muted);
-  height: 24px;
+  height: 20px;
 }
 
 .headerPeriod.highlighted {
@@ -850,8 +853,8 @@ html, body {
 
 /* Data Cells */
 .cell {
-  width: 48px;
-  height: 36px;
+  width: 44px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -859,7 +862,7 @@ html, body {
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
 }
@@ -876,10 +879,10 @@ html, body {
 }
 
 .cellEmpty {
-  width: 48px;
-  height: 36px;
+  width: 44px;
+  height: 32px;
   background-color: var(--color-border);
-  border-radius: 4px;
+  border-radius: 3px;
   opacity: 0.3;
 }
 
@@ -961,40 +964,40 @@ html, body {
 ## Implementation Checklist
 
 ### Phase 1: Setup
-- [ ] Create directory structure
-- [ ] Set up `package.json` with React dependencies
-- [ ] Configure `tsconfig.json` and `vite.config.ts` (with React plugin)
-- [ ] Create `mcp-app.html` entry point with root div
+- [x] Create directory structure
+- [x] Set up `package.json` with React dependencies
+- [x] Configure `tsconfig.json` and `vite.config.ts` (with React plugin)
+- [x] Create `mcp-app.html` entry point with root div
 
 ### Phase 2: Server
-- [ ] Implement retention curve generator
-- [ ] Create `get-cohort-data` tool
-- [ ] Register UI resource
-- [ ] Test data generation produces realistic curves
+- [x] Implement retention curve generator
+- [x] Create `get-cohort-data` tool
+- [x] Register UI resource
+- [x] Test data generation produces realistic curves
 
 ### Phase 3: React App Core
-- [ ] Set up React entry point with `createRoot`
-- [ ] Create `CohortHeatmapApp` component with `useApp` hook
-- [ ] Create `CohortHeatmapInner` component with state hooks
-- [ ] Implement data fetching with `useEffect`/`useCallback`
+- [x] Set up React entry point with `createRoot`
+- [x] Create `CohortHeatmapApp` component with `useApp` hook
+- [x] Create `CohortHeatmapInner` component with state hooks
+- [x] Implement data fetching with `useEffect`/`useCallback`
 
 ### Phase 4: React Components
-- [ ] Create `HeatmapGrid` component (CSS Grid layout)
-- [ ] Create `CohortRow` component
-- [ ] Create `HeatmapCell` component with color scale
-- [ ] Create `Header` component with dropdowns
-- [ ] Create `Legend` component
-- [ ] Create `Tooltip` component
+- [x] Create `HeatmapGrid` component (CSS Grid layout)
+- [x] Create `CohortRow` component
+- [x] Create `HeatmapCell` component with color scale
+- [x] Create `Header` component with dropdowns
+- [x] Create `Legend` component
+- [x] Create `Tooltip` component
 
 ### Phase 5: Interactivity
-- [ ] Implement tooltip on hover via state
-- [ ] Implement row/column highlighting via state
-- [ ] Wire dropdown controls to re-fetch data
-- [ ] Add horizontal scroll behavior
+- [x] Implement tooltip on hover via state
+- [x] Implement row/column highlighting via state
+- [x] Wire dropdown controls to re-fetch data
+- [x] Add horizontal scroll behavior
 
 ### Phase 6: Polish
-- [ ] Add dark mode support via CSS variables
-- [ ] Test 600×600 fit
+- [x] Add dark mode support via CSS variables
+- [x] Test 600×600 fit
 - [ ] Write README.md
 
 ---
