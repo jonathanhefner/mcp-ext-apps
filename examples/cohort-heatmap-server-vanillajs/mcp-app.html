@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cohort Retention Heatmap</title>
+</head>
+<body>
+  <div id="app-container" class="app-container">
+    <header class="header">
+      <h1 class="title">Cohort Retention Analysis</h1>
+      <div id="controls" class="controls"></div>
+    </header>
+
+    <div class="heatmap-wrapper">
+      <div id="heatmap-container" class="heatmap-container">
+        <div class="loading">Loading cohort data...</div>
+      </div>
+    </div>
+
+    <footer class="legend">
+      <div class="legend-item">
+        <span class="legend-swatch high"></span>
+        <span>80-100%</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-swatch medium"></span>
+        <span>50-79%</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-swatch low"></span>
+        <span>20-49%</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-swatch critical"></span>
+        <span>0-19%</span>
+      </div>
+    </footer>
+
+    <div id="tooltip" class="tooltip"></div>
+  </div>
+  <script type="module" src="/src/mcp-app.ts"></script>
+</body>
+</html>
