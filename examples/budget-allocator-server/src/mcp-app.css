@@ -113,7 +113,7 @@ html, body {
 /* Slider Row */
 .slider-row {
   display: grid;
-  grid-template-columns: 95px 44px minmax(60px, 1fr) 56px 46px;
+  grid-template-columns: 95px 50px minmax(60px, 1fr) 56px 46px;
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
@@ -239,8 +239,8 @@ html, body {
 
 /* Sparkline */
 .sparkline {
-  width: 40px;
-  height: 20px;
+  width: 50px;
+  height: 28px;
   border-radius: 3px;
   background: var(--color-border);
   cursor: help;

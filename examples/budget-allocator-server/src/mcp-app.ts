@@ -310,7 +310,7 @@ function createSliderRow(
       <span class="label-text">${category.name}</span>
     </label>
     <div class="sparkline-wrapper">
-      <canvas class="sparkline" width="40" height="20"></canvas>
+      <canvas class="sparkline" width="50" height="28"></canvas>
       <span class="sparkline-tooltip">${tooltipText}</span>
     </div>
     <input
