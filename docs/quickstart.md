@@ -10,6 +10,9 @@ This tutorial walks you through building an MCP App—a tool with an interactive
 
 A simple app that fetches the current server time and displays it in a clickable UI. You'll learn the core pattern: **MCP Apps = Tool + UI Resource**.
 
+> [!NOTE]
+> The complete example is available at [`examples/basic-server-vanillajs`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-server-vanillajs).
+
 ## Prerequisites
 
 - Node.js 18+
@@ -77,7 +80,8 @@ Add to your `package.json`:
 }
 ```
 
-**Full files:** [`package.json`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/package.json), [`tsconfig.json`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/tsconfig.json), [`vite.config.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/vite.config.ts)
+> [!NOTE]
+> **Full files:** [`package.json`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/package.json), [`tsconfig.json`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/tsconfig.json), [`vite.config.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/vite.config.ts)
 
 ## 2. Create the Server
 
@@ -158,7 +162,16 @@ app.listen(3001, () => {
 });
 ```
 
-**Full file:** [`server.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/server.ts)
+> [!NOTE]
+> **Full file:** [`server.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/server.ts)
+
+Then, verify your server compiles:
+
+```bash
+npx tsc --noEmit server.ts
+```
+
+No output means success. If you see errors, check for typos in `server.ts`.
 
 ## 3. Build the UI
 
@@ -216,9 +229,15 @@ Build the UI:
 npm run build
 ```
 
-This produces `dist/mcp-app.html` containing your bundled app.
+> [!NOTE]
+> **Full files:** [`mcp-app.html`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/mcp-app.html), [`src/mcp-app.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/src/mcp-app.ts)
 
-**Full files:** [`mcp-app.html`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/mcp-app.html), [`src/mcp-app.ts`](https://github.com/modelcontextprotocol/ext-apps/blob/main/examples/basic-server-vanillajs/src/mcp-app.ts)
+This produces `dist/mcp-app.html` which contains your bundled app:
+
+```console
+$ ls dist/mcp-app.html
+dist/mcp-app.html
+```
 
 ## 4. Test It
 
