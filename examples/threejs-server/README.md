@@ -26,12 +26,10 @@ Interactive 3D scene renderer using Three.js. Demonstrates streaming code previe
 2. Build and start the server:
 
    ```bash
-   npm start
-   # OR for stdio:
-   npm run build && bun server.ts --stdio
+   npm run start:http  # for Streamable HTTP transport
+   # OR
+   npm run start:stdio  # for stdio transport
    ```
-
-   The server will listen on `http://localhost:3001/mcp`.
 
 3. View using the [`basic-host`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-host) example or another MCP Apps-compatible host.
 
