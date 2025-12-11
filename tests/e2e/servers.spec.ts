@@ -7,6 +7,7 @@ const DYNAMIC_MASKS: Record<string, string[]> = {
   integration: ["#server-time"], // Server time display
   "basic-react": ["#server-time"], // Server time display
   "basic-vanillajs": ["#server-time"], // Server time display
+  "basic-vue": ["#server-time"], // Server time display
   "cohort-heatmap": ['[class*="heatmapWrapper"]'], // Heatmap grid (random data)
   "customer-segmentation": [".chart-container"], // Scatter plot (random data)
   "system-monitor": [
@@ -26,6 +27,7 @@ const SERVERS = [
   { key: "integration", name: "Integration Test Server" },
   { key: "basic-react", name: "Basic MCP App Server (React)" },
   { key: "basic-vanillajs", name: "Basic MCP App Server (Vanilla JS)" },
+  { key: "basic-vue", name: "Basic MCP App Server (Vue)" },
   { key: "budget-allocator", name: "Budget Allocator Server" },
   { key: "cohort-heatmap", name: "Cohort Heatmap Server" },
   { key: "customer-segmentation", name: "Customer Segmentation Server" },
