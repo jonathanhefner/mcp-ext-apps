@@ -12,7 +12,7 @@ const DIST_DIR = path.join(import.meta.dirname, "dist");
 
 
 const server = new McpServer({
-  name: "Basic MCP App Server (React-based)",
+  name: "Basic MCP App Server (React)",
   version: "1.0.0",
 });
 
