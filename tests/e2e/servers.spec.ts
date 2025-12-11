@@ -7,6 +7,7 @@ const DYNAMIC_MASKS: Record<string, string[]> = {
   integration: ["#server-time"], // Server time display
   "basic-preact": ["#server-time"], // Server time display
   "basic-react": ["#server-time"], // Server time display
+  "basic-solid": ["#server-time"], // Server time display
   "basic-svelte": ["#server-time"], // Server time display
   "basic-vanillajs": ["#server-time"], // Server time display
   "basic-vue": ["#server-time"], // Server time display
@@ -29,6 +30,7 @@ const SERVERS = [
   { key: "integration", name: "Integration Test Server" },
   { key: "basic-preact", name: "Basic MCP App Server (Preact)" },
   { key: "basic-react", name: "Basic MCP App Server (React)" },
+  { key: "basic-solid", name: "Basic MCP App Server (Solid)" },
   { key: "basic-svelte", name: "Basic MCP App Server (Svelte)" },
   { key: "basic-vanillajs", name: "Basic MCP App Server (Vanilla JS)" },
   { key: "basic-vue", name: "Basic MCP App Server (Vue)" },
