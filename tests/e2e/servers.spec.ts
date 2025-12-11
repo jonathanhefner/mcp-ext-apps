@@ -5,6 +5,7 @@ import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
 // with partial matches (e.g., [class*="heatmapWrapper"]) for those components
 const DYNAMIC_MASKS: Record<string, string[]> = {
   integration: ["#server-time"], // Server time display
+  "basic-preact": ["#server-time"], // Server time display
   "basic-react": ["#server-time"], // Server time display
   "basic-svelte": ["#server-time"], // Server time display
   "basic-vanillajs": ["#server-time"], // Server time display
@@ -26,6 +27,7 @@ const DYNAMIC_MASKS: Record<string, string[]> = {
 // Server configurations (key is used for screenshot filenames, name is the MCP server name)
 const SERVERS = [
   { key: "integration", name: "Integration Test Server" },
+  { key: "basic-preact", name: "Basic MCP App Server (Preact)" },
   { key: "basic-react", name: "Basic MCP App Server (React)" },
   { key: "basic-svelte", name: "Basic MCP App Server (Svelte)" },
   { key: "basic-vanillajs", name: "Basic MCP App Server (Vanilla JS)" },
