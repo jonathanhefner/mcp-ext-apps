@@ -4,7 +4,7 @@ import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
 // Note: CSS modules generate unique class names, so we use attribute selectors
 // with partial matches (e.g., [class*="heatmapWrapper"]) for those components
 const DYNAMIC_MASKS: Record<string, string[]> = {
-  integration: ["code"], // Server time display
+  integration: ["#server-time"], // Server time display
   "cohort-heatmap": ['[class*="heatmapWrapper"]'], // Heatmap grid (random data)
   "customer-segmentation": [".chart-container"], // Scatter plot (random data)
   "system-monitor": [
