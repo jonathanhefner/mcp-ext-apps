@@ -41,7 +41,7 @@ function createServer(): McpServer {
   server.registerResource(
     RESOURCE_URI,
     RESOURCE_URI,
-    {},
+    { mimeType: RESOURCE_MIME_TYPE },
     async (): Promise<ReadResourceResult> => {
       const html = await fs.readFile(path.join(DIST_DIR, "mcp-app.html"), "utf-8");
 

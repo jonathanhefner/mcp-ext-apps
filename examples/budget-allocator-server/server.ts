@@ -280,7 +280,10 @@ function createServer(): McpServer {
   server.registerResource(
     resourceUri,
     resourceUri,
-    { description: "Interactive Budget Allocator UI" },
+    {
+      mimeType: RESOURCE_MIME_TYPE,
+      description: "Interactive Budget Allocator UI",
+    },
     async (): Promise<ReadResourceResult> => {
       const html = await fs.readFile(
         path.join(DIST_DIR, "mcp-app.html"),
