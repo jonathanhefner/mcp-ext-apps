@@ -9,7 +9,7 @@ import {
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
-import { startServer } from "../shared/server-utils.js";
+import { startServer } from "./src/server-utils.js";
 
 const DIST_DIR = path.join(import.meta.dirname, "dist");
 

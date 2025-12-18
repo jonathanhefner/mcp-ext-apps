@@ -12,7 +12,7 @@ import {
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
-import { startServer } from "../shared/server-utils.js";
+import { startServer } from "./src/server-utils.js";
 import {
   generateCustomers,
   generateSegmentSummaries,
