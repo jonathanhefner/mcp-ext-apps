@@ -1,5 +1,4 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -11,7 +10,6 @@ const RESOURCE_URI = "ui://get-time/mcp-app.html";
 
 /**
  * Creates a new MCP server instance with tools and resources registered.
- * Each HTTP session needs its own server instance because McpServer only supports one transport.
  */
 function createServer(): McpServer {
   const server = new McpServer({
@@ -58,16 +56,4 @@ function createServer(): McpServer {
   return server;
 }
 
-async function main() {
-  if (process.argv.includes("--stdio")) {
-    await createServer().connect(new StdioServerTransport());
-  } else {
-    const port = parseInt(process.env.PORT ?? "3102", 10);
-    await startServer(createServer, { port, name: "Basic MCP App Server (Vanilla JS)" });
-  }
-}
-
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+startServer(createServer);

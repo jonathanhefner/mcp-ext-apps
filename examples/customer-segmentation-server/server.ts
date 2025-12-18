@@ -1,5 +1,4 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type {
   CallToolResult,
   ReadResourceResult,
@@ -30,7 +29,7 @@ const GetCustomerDataInputSchema = z.object({
     .describe("Filter by segment (default: All)"),
 });
 
-// Cache generated data for session consistency
+// Cache generated data for consistency across requests
 let cachedCustomers: Customer[] | null = null;
 let cachedSegments: SegmentSummary[] | null = null;
 
@@ -58,7 +57,6 @@ function getCustomerData(segmentFilter?: string): {
 
 /**
  * Creates a new MCP server instance with tools and resources registered.
- * Each HTTP session needs its own server instance because McpServer only supports one transport.
  */
 function createServer(): McpServer {
   const server = new McpServer({
@@ -119,19 +117,4 @@ function createServer(): McpServer {
   return server;
 }
 
-async function main() {
-  if (process.argv.includes("--stdio")) {
-    await createServer().connect(new StdioServerTransport());
-  } else {
-    const port = parseInt(process.env.PORT ?? "3105", 10);
-    await startServer(createServer, {
-      port,
-      name: "Customer Segmentation Server",
-    });
-  }
-}
-
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+startServer(createServer);
