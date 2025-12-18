@@ -20,12 +20,8 @@ const log = {
 
 
 function extractTime(callToolResult: CallToolResult): string {
-  const text = callToolResult.content!
-    .filter((c): c is { type: "text"; text: string } => c.type === "text")
-    .map((c) => c.text)
-    .join("");
-  const { time } = JSON.parse(text) as { time: string };
-  return time;
+  const { text } = callToolResult.content?.find((c) => c.type === "text")!;
+  return text;
 }
 
 
@@ -37,8 +33,6 @@ function GetTimeApp() {
     onAppCreated: (app) => {
       app.onteardown = async () => {
         log.info("App is being torn down");
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate cleanup work
-        log.info("App teardown complete");
         return {};
       };
       app.ontoolinput = async (input) => {
