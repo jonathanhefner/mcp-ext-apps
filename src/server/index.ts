@@ -62,8 +62,8 @@ export interface McpUiAppToolConfig extends ToolConfig {
  * MCP App Resource configuration for `registerAppResource`.
  */
 export interface McpUiAppResourceConfig extends ResourceMetadata {
-  _meta: {
-    ui: McpUiResourceMeta;
+  _meta?: {
+    ui?: McpUiResourceMeta;
     [key: string]: unknown;
   };
 }
