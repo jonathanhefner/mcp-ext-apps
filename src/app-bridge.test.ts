@@ -113,7 +113,8 @@ describe("App <-> AppBridge integration", () => {
       const testHostContext = {
         theme: "dark" as const,
         locale: "en-US",
-        viewport: { width: 800, height: 600, maxHeight: 600 },
+        viewport: { width: 800, height: 600 },
+        containerDimensions: { width: 800, maxHeight: 600 },
       };
       const newBridge = new AppBridge(
         createMockClient() as Client,
@@ -337,7 +338,8 @@ describe("App <-> AppBridge integration", () => {
       const initialContext = {
         theme: "light" as const,
         locale: "en-US",
-        viewport: { width: 800, height: 600, maxHeight: 600 },
+        viewport: { width: 800, height: 600 },
+        containerDimensions: { width: 800, maxHeight: 600 },
       };
       const newBridge = new AppBridge(
         createMockClient() as Client,
@@ -354,22 +356,26 @@ describe("App <-> AppBridge integration", () => {
       newBridge.sendHostContextChange({ theme: "dark" });
       await flush();
 
-      // Send another partial update: only viewport changes
+      // Send another partial update: only viewport and containerDimensions change
       newBridge.sendHostContextChange({
-        viewport: { width: 1024, height: 768, maxHeight: 768 },
+        viewport: { width: 1024, height: 768 },
+        containerDimensions: { width: 1024, maxHeight: 768 },
       });
       await flush();
 
       // getHostContext should have accumulated all updates:
       // - locale from initial (unchanged)
       // - theme from first partial update
-      // - viewport from second partial update
+      // - viewport and containerDimensions from second partial update
       const context = newApp.getHostContext();
       expect(context?.theme).toBe("dark");
       expect(context?.locale).toBe("en-US");
       expect(context?.viewport).toEqual({
         width: 1024,
         height: 768,
+      });
+      expect(context?.containerDimensions).toEqual({
+        width: 1024,
         maxHeight: 768,
       });
 

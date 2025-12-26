@@ -325,16 +325,39 @@ export interface McpUiHostContext {
   displayMode?: McpUiDisplayMode;
   /** @description Display modes the host supports. */
   availableDisplayModes?: string[];
-  /** @description Current and maximum dimensions available to the UI. */
+  /**
+   * @description Container dimensions. Represents the dimensions of the iframe or other
+   * container holding the app. Specify either width or maxWidth, and either height or maxHeight.
+   */
+  containerDimensions?: (
+    | {
+        /** @description Fixed container height in pixels. */
+        height: number;
+      }
+    | {
+        /** @description Maximum container height in pixels. */
+        maxHeight?: number | undefined;
+      }
+  ) &
+    (
+      | {
+          /** @description Fixed container width in pixels. */
+          width: number;
+        }
+      | {
+          /** @description Maximum container width in pixels. */
+          maxWidth?: number | undefined;
+        }
+    );
+  /**
+   * @description Window viewport dimensions. Represents the host window's viewport size,
+   * which provides additional information apps can use to make responsive layout decisions.
+   */
   viewport?: {
-    /** @description Viewport width in pixels (if fixed). Only pass width or maxWidth, not both. */
+    /** @description Window viewport width in pixels. */
     width?: number | undefined;
-    /** @description Viewport height in pixels (if fixed). Only pass height or maxHeight, not both. */
+    /** @description Window viewport height in pixels. */
     height?: number | undefined;
-    /** @description Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.*/
-    maxWidth?: number | undefined;
-    /** @description Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both. */
-    maxHeight?: number | undefined;
   };
   /** @description User's language and region preference in BCP 47 format. */
   locale?: string;

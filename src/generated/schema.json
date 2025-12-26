@@ -632,12 +632,77 @@
                 "type": "string"
               }
             },
+            "containerDimensions": {
+              "description": "Container dimensions. Represents the dimensions of the iframe or other\ncontainer holding the app. Specify either width or maxWidth, and either height or maxHeight.",
+              "allOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "height": {
+                          "description": "Fixed container height in pixels.",
+                          "type": "number"
+                        }
+                      },
+                      "required": ["height"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "maxHeight": {
+                          "description": "Maximum container height in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {}
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "width": {
+                          "description": "Fixed container width in pixels.",
+                          "type": "number"
+                        }
+                      },
+                      "required": ["width"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "maxWidth": {
+                          "description": "Maximum container width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {}
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              ]
+            },
             "viewport": {
-              "description": "Current and maximum dimensions available to the UI.",
+              "description": "Window viewport dimensions. Represents the host window's viewport size,\nwhich provides additional information apps can use to make responsive layout decisions.",
               "type": "object",
               "properties": {
                 "width": {
-                  "description": "Viewport width in pixels (if fixed). Only pass width or maxWidth, not both.",
+                  "description": "Window viewport width in pixels.",
                   "anyOf": [
                     {
                       "type": "number"
@@ -646,25 +711,7 @@
                   ]
                 },
                 "height": {
-                  "description": "Viewport height in pixels (if fixed). Only pass height or maxHeight, not both.",
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {}
-                  ]
-                },
-                "maxWidth": {
-                  "description": "Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.",
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {}
-                  ]
-                },
-                "maxHeight": {
-                  "description": "Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both.",
+                  "description": "Window viewport height in pixels.",
                   "anyOf": [
                     {
                       "type": "number"
@@ -1281,12 +1328,77 @@
             "type": "string"
           }
         },
+        "containerDimensions": {
+          "description": "Container dimensions. Represents the dimensions of the iframe or other\ncontainer holding the app. Specify either width or maxWidth, and either height or maxHeight.",
+          "allOf": [
+            {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "height": {
+                      "description": "Fixed container height in pixels.",
+                      "type": "number"
+                    }
+                  },
+                  "required": ["height"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "maxHeight": {
+                      "description": "Maximum container height in pixels.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {}
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "width": {
+                      "description": "Fixed container width in pixels.",
+                      "type": "number"
+                    }
+                  },
+                  "required": ["width"],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "maxWidth": {
+                      "description": "Maximum container width in pixels.",
+                      "anyOf": [
+                        {
+                          "type": "number"
+                        },
+                        {}
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          ]
+        },
         "viewport": {
-          "description": "Current and maximum dimensions available to the UI.",
+          "description": "Window viewport dimensions. Represents the host window's viewport size,\nwhich provides additional information apps can use to make responsive layout decisions.",
           "type": "object",
           "properties": {
             "width": {
-              "description": "Viewport width in pixels (if fixed). Only pass width or maxWidth, not both.",
+              "description": "Window viewport width in pixels.",
               "anyOf": [
                 {
                   "type": "number"
@@ -1295,25 +1407,7 @@
               ]
             },
             "height": {
-              "description": "Viewport height in pixels (if fixed). Only pass height or maxHeight, not both.",
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {}
-              ]
-            },
-            "maxWidth": {
-              "description": "Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.",
-              "anyOf": [
-                {
-                  "type": "number"
-                },
-                {}
-              ]
-            },
-            "maxHeight": {
-              "description": "Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both.",
+              "description": "Window viewport height in pixels.",
               "anyOf": [
                 {
                   "type": "number"
@@ -2467,12 +2561,77 @@
                 "type": "string"
               }
             },
+            "containerDimensions": {
+              "description": "Container dimensions. Represents the dimensions of the iframe or other\ncontainer holding the app. Specify either width or maxWidth, and either height or maxHeight.",
+              "allOf": [
+                {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "height": {
+                          "description": "Fixed container height in pixels.",
+                          "type": "number"
+                        }
+                      },
+                      "required": ["height"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "maxHeight": {
+                          "description": "Maximum container height in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {}
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "width": {
+                          "description": "Fixed container width in pixels.",
+                          "type": "number"
+                        }
+                      },
+                      "required": ["width"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "maxWidth": {
+                          "description": "Maximum container width in pixels.",
+                          "anyOf": [
+                            {
+                              "type": "number"
+                            },
+                            {}
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              ]
+            },
             "viewport": {
-              "description": "Current and maximum dimensions available to the UI.",
+              "description": "Window viewport dimensions. Represents the host window's viewport size,\nwhich provides additional information apps can use to make responsive layout decisions.",
               "type": "object",
               "properties": {
                 "width": {
-                  "description": "Viewport width in pixels (if fixed). Only pass width or maxWidth, not both.",
+                  "description": "Window viewport width in pixels.",
                   "anyOf": [
                     {
                       "type": "number"
@@ -2481,25 +2640,7 @@
                   ]
                 },
                 "height": {
-                  "description": "Viewport height in pixels (if fixed). Only pass height or maxHeight, not both.",
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {}
-                  ]
-                },
-                "maxWidth": {
-                  "description": "Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.",
-                  "anyOf": [
-                    {
-                      "type": "number"
-                    },
-                    {}
-                  ]
-                },
-                "maxHeight": {
-                  "description": "Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both.",
+                  "description": "Window viewport height in pixels.",
                   "anyOf": [
                     {
                       "type": "number"

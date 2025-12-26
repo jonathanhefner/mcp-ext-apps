@@ -563,40 +563,64 @@ export const McpUiHostContextSchema = z.looseObject({
     .array(z.string())
     .optional()
     .describe("Display modes the host supports."),
-  /** @description Current and maximum dimensions available to the UI. */
+  /**
+   * @description Container dimensions. Represents the dimensions of the iframe or other
+   * container holding the app. Specify either width or maxWidth, and either height or maxHeight.
+   */
+  containerDimensions: z
+    .union([
+      z.object({
+        /** @description Fixed container height in pixels. */
+        height: z.number().describe("Fixed container height in pixels."),
+      }),
+      z.object({
+        /** @description Maximum container height in pixels. */
+        maxHeight: z
+          .union([z.number(), z.undefined()])
+          .optional()
+          .describe("Maximum container height in pixels."),
+      }),
+    ])
+    .and(
+      z.union([
+        z.object({
+          /** @description Fixed container width in pixels. */
+          width: z.number().describe("Fixed container width in pixels."),
+        }),
+        z.object({
+          /** @description Maximum container width in pixels. */
+          maxWidth: z
+            .union([z.number(), z.undefined()])
+            .optional()
+            .describe("Maximum container width in pixels."),
+        }),
+      ]),
+    )
+    .optional()
+    .describe(
+      "Container dimensions. Represents the dimensions of the iframe or other\ncontainer holding the app. Specify either width or maxWidth, and either height or maxHeight.",
+    ),
+  /**
+   * @description Window viewport dimensions. Represents the host window's viewport size,
+   * which provides additional information apps can use to make responsive layout decisions.
+   */
   viewport: z
     .object({
-      /** @description Viewport width in pixels (if fixed). Only pass width or maxWidth, not both. */
+      /** @description Window viewport width in pixels. */
       width: z
         .union([z.number(), z.undefined()])
         .optional()
-        .describe(
-          "Viewport width in pixels (if fixed). Only pass width or maxWidth, not both.",
-        ),
-      /** @description Viewport height in pixels (if fixed). Only pass height or maxHeight, not both. */
+        .describe("Window viewport width in pixels."),
+      /** @description Window viewport height in pixels. */
       height: z
         .union([z.number(), z.undefined()])
         .optional()
-        .describe(
-          "Viewport height in pixels (if fixed). Only pass height or maxHeight, not both.",
-        ),
-      /** @description Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.*/
-      maxWidth: z
-        .union([z.number(), z.undefined()])
-        .optional()
-        .describe(
-          "Maximum available viewport width in pixels (if constrained). Only pass width or maxWidth, not both.",
-        ),
-      /** @description Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both. */
-      maxHeight: z
-        .union([z.number(), z.undefined()])
-        .optional()
-        .describe(
-          "Maximum available viewport height in pixels (if constrained). Only pass height or maxHeight, not both.",
-        ),
+        .describe("Window viewport height in pixels."),
     })
     .optional()
-    .describe("Current and maximum dimensions available to the UI."),
+    .describe(
+      "Window viewport dimensions. Represents the host window's viewport size,\nwhich provides additional information apps can use to make responsive layout decisions.",
+    ),
   /** @description User's language and region preference in BCP 47 format. */
   locale: z
     .string()
