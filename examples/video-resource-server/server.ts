@@ -19,7 +19,6 @@ import {
   registerAppTool,
   registerAppResource,
   RESOURCE_MIME_TYPE,
-  RESOURCE_URI_META_KEY,
 } from "@modelcontextprotocol/ext-apps/server";
 import { startServer } from "./src/server-utils.js";
 
@@ -127,7 +126,7 @@ ${Object.entries(VIDEO_LIBRARY)
             `Video ID to play. Available: ${Object.keys(VIDEO_LIBRARY).join(", ")}`,
           ),
       },
-      _meta: { [RESOURCE_URI_META_KEY]: RESOURCE_URI },
+      _meta: { ui: { resourceUri: RESOURCE_URI } },
     },
     async ({ videoId }): Promise<CallToolResult> => {
       const video = VIDEO_LIBRARY[videoId];

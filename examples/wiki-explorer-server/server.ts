@@ -9,7 +9,6 @@ import path from "node:path";
 import { z } from "zod";
 import {
   RESOURCE_MIME_TYPE,
-  RESOURCE_URI_META_KEY,
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
@@ -94,7 +93,7 @@ function createServer(): McpServer {
           .default("https://en.wikipedia.org/wiki/Model_Context_Protocol")
           .describe("Wikipedia page URL"),
       }),
-      _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
+      _meta: { ui: { resourceUri } },
     },
     async ({ url }): Promise<CallToolResult> => {
       let title = url;

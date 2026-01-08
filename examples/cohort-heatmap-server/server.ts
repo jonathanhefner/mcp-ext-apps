@@ -5,7 +5,6 @@ import path from "node:path";
 import { z } from "zod";
 import {
   RESOURCE_MIME_TYPE,
-  RESOURCE_URI_META_KEY,
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
@@ -168,7 +167,7 @@ function createServer(): McpServer {
       description:
         "Returns cohort retention heatmap data showing customer retention over time by signup month",
       inputSchema: GetCohortDataInputSchema.shape,
-      _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
+      _meta: { ui: { resourceUri } },
     },
     async ({ metric, periodType, cohortCount, maxPeriods }) => {
       const data = generateCohortData(

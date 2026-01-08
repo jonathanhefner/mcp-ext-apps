@@ -2,7 +2,6 @@ import {
   registerAppResource,
   registerAppTool,
   RESOURCE_MIME_TYPE,
-  RESOURCE_URI_META_KEY,
 } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type {
@@ -32,7 +31,7 @@ function createServer(): McpServer {
       title: "Get Time",
       description: "Returns the current server time as an ISO 8601 string.",
       inputSchema: {},
-      _meta: { [RESOURCE_URI_META_KEY]: RESOURCE_URI },
+      _meta: { ui: { resourceUri: RESOURCE_URI } },
     },
     async (): Promise<CallToolResult> => {
       const time = new Date().toISOString();

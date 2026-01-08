@@ -10,7 +10,6 @@ import si from "systeminformation";
 import { z } from "zod";
 import {
   RESOURCE_MIME_TYPE,
-  RESOURCE_URI_META_KEY,
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
@@ -123,7 +122,7 @@ function createServer(): McpServer {
       description:
         "Returns current system statistics including per-core CPU usage, memory, and system info.",
       inputSchema: {},
-      _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
+      _meta: { ui: { resourceUri } },
     },
     async (): Promise<CallToolResult> => {
       const cpuSnapshots = getCpuSnapshots();
