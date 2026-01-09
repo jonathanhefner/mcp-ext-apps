@@ -13,6 +13,7 @@ const DYNAMIC_MASKS: Record<string, string[]> = {
   "basic-vue": ["#server-time"], // Server time display
   "cohort-heatmap": ['[class*="heatmapWrapper"]'], // Heatmap grid (random data)
   "customer-segmentation": [".chart-container"], // Scatter plot (random data)
+  shadertoy: ["#canvas"], // WebGL shader canvas (animated)
   "system-monitor": [
     ".chart-container", // CPU chart (highly dynamic)
     "#status-text", // Current timestamp
@@ -38,6 +39,7 @@ const SERVERS = [
   { key: "cohort-heatmap", name: "Cohort Heatmap Server" },
   { key: "customer-segmentation", name: "Customer Segmentation Server" },
   { key: "scenario-modeler", name: "SaaS Scenario Modeler" },
+  { key: "shadertoy", name: "ShaderToy Server" },
   { key: "sheet-music", name: "Sheet Music Server" },
   { key: "system-monitor", name: "System Monitor Server" },
   { key: "threejs", name: "Three.js Server" },
