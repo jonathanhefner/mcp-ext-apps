@@ -107,6 +107,34 @@ async function getMemoryStats(): Promise<MemoryStats> {
   };
 }
 
+async function getStats(): Promise<CallToolResult> {
+  const cpuSnapshots = getCpuSnapshots();
+  const cpuInfo = os.cpus()[0];
+  const memory = await getMemoryStats();
+  const uptimeSeconds = os.uptime();
+
+  const stats: SystemStats = {
+    cpu: {
+      cores: cpuSnapshots,
+      model: cpuInfo?.model ?? "Unknown",
+      count: os.cpus().length,
+    },
+    memory,
+    system: {
+      hostname: os.hostname(),
+      platform: `${os.platform()} ${os.arch()}`,
+      arch: os.arch(),
+      uptime: uptimeSeconds,
+      uptimeFormatted: formatUptime(uptimeSeconds),
+    },
+    timestamp: new Date().toISOString(),
+  };
+
+  return {
+    content: [{ type: "text", text: JSON.stringify(stats) }],
+  };
+}
+
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "System Monitor Server",
@@ -126,33 +154,18 @@ export function createServer(): McpServer {
       inputSchema: {},
       _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
     },
-    async (): Promise<CallToolResult> => {
-      const cpuSnapshots = getCpuSnapshots();
-      const cpuInfo = os.cpus()[0];
-      const memory = await getMemoryStats();
-      const uptimeSeconds = os.uptime();
+    getStats,
+  );
 
-      const stats: SystemStats = {
-        cpu: {
-          cores: cpuSnapshots,
-          model: cpuInfo?.model ?? "Unknown",
-          count: os.cpus().length,
-        },
-        memory,
-        system: {
-          hostname: os.hostname(),
-          platform: `${os.platform()} ${os.arch()}`,
-          arch: os.arch(),
-          uptime: uptimeSeconds,
-          uptimeFormatted: formatUptime(uptimeSeconds),
-        },
-        timestamp: new Date().toISOString(),
-      };
-
-      return {
-        content: [{ type: "text", text: JSON.stringify(stats) }],
-      };
+  // App-only tool for polling - used by the UI for periodic refresh
+  server.registerTool(
+    "refresh-stats",
+    {
+      title: "Refresh Stats",
+      description: "Refresh system statistics (app-only, for polling)",
+      inputSchema: {},
     },
+    getStats,
   );
 
   registerAppResource(
