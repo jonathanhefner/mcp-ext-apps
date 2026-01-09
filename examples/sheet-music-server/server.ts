@@ -13,8 +13,7 @@ import {
   registerAppResource,
   registerAppTool,
 } from "@modelcontextprotocol/ext-apps/server";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { startServer } from "./server-utils.js";
+import { startStdioServer, startHttpServer } from "./server-utils.js";
 
 const DIST_DIR = path.join(import.meta.dirname, "dist");
 
@@ -118,12 +117,9 @@ function createServer(): McpServer {
 }
 
 async function main() {
-  if (process.argv.includes("--stdio")) {
-    await createServer().connect(new StdioServerTransport());
-  } else {
-    const port = parseInt(process.env.PORT ?? "3001", 10);
-    await startServer(createServer, { port, name: "Sheet Music Server" });
-  }
+  process.argv.includes("--stdio")
+    ? await startStdioServer(createServer)
+    : await startHttpServer(createServer);
 }
 
 main().catch((e) => {
