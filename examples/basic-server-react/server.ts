@@ -1,9 +1,9 @@
+import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import type { CallToolResult, ReadResourceResult } from "@modelcontextprotocol/sdk/types.js";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { registerAppTool, registerAppResource, RESOURCE_MIME_TYPE, RESOURCE_URI_META_KEY } from "@modelcontextprotocol/ext-apps/server";
 import { startServer } from "./server-utils.js";
 
 const DIST_DIR = path.join(import.meta.dirname, "dist");
@@ -21,15 +21,15 @@ export function createServer(): McpServer {
   const resourceUri = "ui://get-time/mcp-app.html";
 
   // Register a tool with UI metadata. When the host calls this tool, it reads
-  // `_meta[RESOURCE_URI_META_KEY]` to know which resource to fetch and render
-  // as an interactive UI.
+  // `_meta.ui.resourceUri` to know which resource to fetch and render as an
+  // interactive UI.
   registerAppTool(server,
     "get-time",
     {
       title: "Get Time",
       description: "Returns the current server time as an ISO 8601 string.",
       inputSchema: {},
-      _meta: { [RESOURCE_URI_META_KEY]: resourceUri },
+      _meta: { ui: { resourceUri } },
     },
     async (): Promise<CallToolResult> => {
       const time = new Date().toISOString();
