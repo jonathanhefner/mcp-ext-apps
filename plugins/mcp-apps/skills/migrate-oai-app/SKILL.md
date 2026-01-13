@@ -60,7 +60,8 @@ The fundamental paradigm shift: OpenAI uses a synchronous global object (`window
 
 Key differences:
 - Create an `App` instance and register handlers (`ontoolinput`, `ontoolresult`, `onhostcontextchanged`) **before** calling `connect()`. (Events may fire immediately after connection, so handlers must be registered first.)
-- Access context via `app.getHostContext()` instead of global properties.
+- Access tool data via handlers: `app.ontoolinput` for `window.openai.toolInput`, `app.ontoolresult` for `window.openai.toolOutput`.
+- Access host environment (theme, locale, etc.) via `app.getHostContext()`.
 
 For React apps, the `useApp` hook manages this lifecycle automatically—see `basic-server-react/` for the pattern.
 
