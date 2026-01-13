@@ -67,51 +67,52 @@ For React apps, the `useApp` hook manages this lifecycle automatically—see `ba
 
 See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-side mapping tables.
 
-## Migration Checklist
+## Migration Verification
 
-These migration-specific changes are easy to miss. Verify each one:
+After applying changes from the migration reference, verify completeness:
 
-### MIME Type
+### Search for Remaining OpenAI Patterns
+
+Run these searches—no matches should remain:
+
+**Server-side:**
+| Pattern | Indicates |
+|---------|-----------|
+| `"openai/` | Old metadata keys—convert to `_meta.ui.*` |
+| `text/html+skybridge` | Old MIME type—use `RESOURCE_MIME_TYPE` |
+| `_domains"` or `_domains:` | Snake_case CSP—use camelCase (`connect_domains` → `connectDomains`) |
+
+**Client-side:**
+| Pattern | Indicates |
+|---------|-----------|
+| `window.openai` | Old global API—convert to `App` instance methods |
+| `.toolOutput` | Wrong property—use `params.structuredContent` in `ontoolresult` |
+| `{ href:` | Old param name—use `{ url:` for `openLink()` |
+| `sendFollowUpMessage` | Old method—use `sendMessage()` with structured content |
+| `notifyIntrinsicHeight` | Old size API—use `sendSizeChanged()` or `autoResize: true` |
+
+### Handler Registration Order
+
+This can't be searched for—manually verify handlers are registered BEFORE `connect()`:
+
 ```typescript
-// ❌ OpenAI
-mimeType: "text/html+skybridge"
+// ✅ Correct
+app.ontoolinput = (params) => { ... };
+app.ontoolresult = (params) => { ... };
+await app.connect();
 
-// ✅ MCP
-import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
-mimeType: RESOURCE_MIME_TYPE  // "text/html;profile=mcp-app"
+// ❌ Wrong - events may fire before handlers are set
+await app.connect();
+app.ontoolinput = (params) => { ... };
 ```
 
-### Visibility Format
-```typescript
-// ❌ OpenAI (boolean/string)
-"openai/widgetAccessible": true,
-"openai/visibility": "public",
+### Runtime Test
 
-// ✅ MCP (string array)
-_meta: { ui: { visibility: ["app", "model"] } }
-```
-
-### Tool Result Access
-```typescript
-// ❌ OpenAI
-const data = window.openai.toolOutput;
-
-// ✅ MCP
-app.ontoolresult = (params) => {
-  const data = params.structuredContent;  // not params.toolOutput
-};
-```
-
-### API Parameter Names
-```typescript
-// ❌ OpenAI
-await window.openai.openExternal({ href: "https://..." });
-await window.openai.sendFollowUpMessage({ prompt: "..." });
-
-// ✅ MCP
-await app.openLink({ url: "https://..." });  // href → url
-await app.sendMessage({ role: "user", content: [{ type: "text", text: "..." }] });
-```
+After migration, run in basic-host and verify:
+1. App loads without console errors
+2. `ontoolinput` handler fires with tool arguments
+3. `ontoolresult` handler fires with `structuredContent`
+4. Theme/context changes propagate to the UI
 
 ## Features Not Yet Available in MCP Apps
 
