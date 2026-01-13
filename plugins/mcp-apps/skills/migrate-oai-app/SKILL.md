@@ -50,8 +50,6 @@ Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/`:
 
 Use `registerAppTool()` and `registerAppResource()` helpers instead of raw `server.registerTool()` / `server.registerResource()`. These helpers handle the MCP Apps metadata format automatically.
 
-CSP properties change from snake_case to camelCase (`connect_domains` → `connectDomains`, `resource_domains` → `resourceDomains`).
-
 See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete server-side mapping tables.
 
 ### Client-Side
@@ -67,6 +65,17 @@ For React apps, the `useApp` hook manages this lifecycle automatically—see `ba
 
 See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-side mapping tables.
 
+### Features Not Yet Available in MCP Apps
+
+These OpenAI features don't have MCP equivalents yet:
+
+| OpenAI Feature | Workaround |
+|----------------|------------|
+| `_meta["openai/toolInvocation/invoking"]` / `invoked` | Progress indicators not yet available |
+| `window.openai.widgetState` / `setWidgetState()` | Use `localStorage` or server-side state |
+| `window.openai.uploadFile()` / `getFileDownloadUrl()` | File operations not yet available |
+| `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
+
 ## Migration Verification
 
 After applying changes from the migration reference, verify completeness:
@@ -78,18 +87,18 @@ Run these searches—no matches should remain:
 **Server-side:**
 | Pattern | Indicates |
 |---------|-----------|
-| `"openai/` | Old metadata keys—convert to `_meta.ui.*` |
-| `text/html+skybridge` | Old MIME type—use `RESOURCE_MIME_TYPE` |
-| `_domains"` or `_domains:` | Snake_case CSP—use camelCase (`connect_domains` → `connectDomains`) |
+| `"openai/` | Old metadata keys → `_meta.ui.*` |
+| `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` |
+| `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
 **Client-side:**
 | Pattern | Indicates |
 |---------|-----------|
-| `window.openai` | Old global API—convert to `App` instance methods |
-| `.toolOutput` | Wrong property—use `params.structuredContent` in `ontoolresult` |
-| `{ href:` | Old param name—use `{ url:` for `openLink()` |
-| `sendFollowUpMessage` | Old method—use `sendMessage()` with structured content |
-| `notifyIntrinsicHeight` | Old size API—use `sendSizeChanged()` or `autoResize: true` |
+| `window.openai` | Old global API → `App` instance methods |
+| `.toolOutput` | Wrong property → `params.structuredContent` in `ontoolresult` |
+| `{ href:` | Old param name → `{ url:` for `openLink()` |
+| `sendFollowUpMessage` | Old method → `sendMessage()` with structured content |
+| `notifyIntrinsicHeight` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
 ### Handler Registration Order
 
@@ -105,25 +114,6 @@ await app.connect();
 await app.connect();
 app.ontoolinput = (params) => { ... };
 ```
-
-### Runtime Test
-
-After migration, run in basic-host and verify:
-1. App loads without console errors
-2. `ontoolinput` handler fires with tool arguments
-3. `ontoolresult` handler fires with `structuredContent`
-4. Theme/context changes propagate to the UI
-
-## Features Not Yet Available in MCP Apps
-
-These OpenAI features don't have MCP equivalents yet:
-
-| OpenAI Feature | Workaround |
-|----------------|------------|
-| `_meta["openai/toolInvocation/invoking"]` / `invoked` | Progress indicators not yet available |
-| `window.openai.widgetState` / `setWidgetState()` | Use `localStorage` or server-side state |
-| `window.openai.uploadFile()` / `getFileDownloadUrl()` | File operations not yet available |
-| `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
 
 ## Testing
 
@@ -141,6 +131,14 @@ npm install
 SERVERS='["http://localhost:3001/mcp"]' npm run start
 # Open http://localhost:8080
 ```
+
+### Verify Runtime Behavior
+
+Once the app loads in basic-host, confirm:
+1. App loads without console errors
+2. `ontoolinput` handler fires with tool arguments
+3. `ontoolresult` handler fires with `structuredContent`
+4. Theme/context changes propagate to the UI
 
 ### Debug with sendLog
 
