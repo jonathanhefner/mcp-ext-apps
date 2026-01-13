@@ -44,168 +44,27 @@ Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/`:
 | `src/spec.types.ts` | Type definitions |
 | `src/react/useApp.tsx` | `useApp` hook for React apps |
 
-## Server-Side Migration
+## Key Conceptual Changes
 
-### 1. Update Imports
+### Server-Side
 
-```typescript
-// Before (OpenAI)
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+Use `registerAppTool()` and `registerAppResource()` helpers instead of raw `server.registerTool()` / `server.registerResource()`. These helpers handle the MCP Apps metadata format automatically.
 
-// After (MCP Apps) - add helper imports
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import {
-  registerAppTool,
-  registerAppResource,
-  RESOURCE_MIME_TYPE,
-} from "@modelcontextprotocol/ext-apps/server";
-```
+CSP properties change from snake_case to camelCase (`connect_domains` → `connectDomains`, `resource_domains` → `resourceDomains`).
 
-### 2. Migrate Tool Metadata
+See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete server-side mapping tables.
 
-| OpenAI | MCP Apps | Notes |
-|--------|----------|-------|
-| `_meta["openai/outputTemplate"]` | `_meta.ui.resourceUri` | URI of UI resource |
-| `_meta["openai/widgetAccessible"]: true` | `_meta.ui.visibility: ["app", "model"]` | Array format |
-| `_meta["openai/visibility"]: "public"` | Include `"model"` in visibility array | |
-| `_meta["openai/visibility"]: "private"` | Exclude `"model"` from visibility array | |
+### Client-Side
 
-```typescript
-// Before (OpenAI)
-server.registerTool("my-tool", {
-  _meta: {
-    "openai/outputTemplate": "ui://widget/app.html",
-    "openai/widgetAccessible": true,
-  },
-  // ...
-}, handler);
+The fundamental paradigm shift: OpenAI uses a synchronous global object (`window.openai.toolInput`, `window.openai.theme`) that's pre-populated before your code runs. MCP Apps uses an `App` instance with async event handlers.
 
-// After (MCP Apps)
-registerAppTool(server, "my-tool", {
-  _meta: { ui: { resourceUri: "ui://widget/app.html" } },
-  // ...
-}, handler);
-```
+Key differences:
+- Create an `App` instance and register handlers (`ontoolinput`, `ontoolresult`, `onhostcontextchanged`) **before** calling `connect()`. (Events may fire immediately after connection, so handlers must be registered first.)
+- Access context via `app.getHostContext()` instead of global properties.
 
-### 3. Migrate Resource Registration
+For React apps, the `useApp` hook manages this lifecycle automatically—see `basic-server-react/` for the pattern.
 
-```typescript
-// Before (OpenAI)
-server.registerResource(
-  "Widget",
-  "ui://widget/app.html",
-  { mimeType: "text/html+skybridge" },
-  async () => ({
-    contents: [{
-      uri: "ui://widget/app.html",
-      mimeType: "text/html+skybridge",
-      text: html,
-    }],
-  }),
-);
-
-// After (MCP Apps)
-registerAppResource(
-  server,
-  "Widget",
-  "ui://widget/app.html",
-  { description: "Widget UI" },
-  async () => ({
-    contents: [{
-      uri: "ui://widget/app.html",
-      mimeType: RESOURCE_MIME_TYPE,
-      text: html,
-    }],
-  }),
-);
-```
-
-### 4. Migrate CSP Properties
-
-CSP property names change from snake_case to camelCase:
-
-| OpenAI | MCP Apps |
-|--------|----------|
-| `connect_domains` | `connectDomains` |
-| `resource_domains` | `resourceDomains` |
-
-## Client-Side Migration
-
-### 1. Replace Global with App Instance
-
-```typescript
-// Before (OpenAI)
-applyTheme(window.openai.theme);
-console.log("Args:", window.openai.toolInput);
-console.log("Result:", window.openai.toolOutput);
-
-// After (MCP Apps)
-import { App } from "@modelcontextprotocol/ext-apps";
-
-const app = new App({ name: "MyApp", version: "1.0.0" });
-
-// Register handlers BEFORE connect
-app.ontoolinput = (params) => {
-  console.log("Args:", params.arguments);
-};
-
-app.ontoolresult = (params) => {
-  console.log("Result:", params.structuredContent);
-};
-
-app.onhostcontextchanged = (ctx) => {
-  if (ctx.theme) applyTheme(ctx.theme);
-};
-
-// Connect (auto-detects OpenAI vs MCP environment)
-await app.connect();
-
-// Access initial context
-applyTheme(app.getHostContext()?.theme);
-```
-
-### 2. Migrate API Calls
-
-| OpenAI | MCP Apps |
-|--------|----------|
-| `await window.openai.callTool(name, args)` | `await app.callServerTool({ name, arguments: args })` |
-| `await window.openai.sendFollowUpMessage({ prompt })` | `await app.sendMessage({ role: "user", content: [{ type: "text", text: prompt }] })` |
-| `await window.openai.openExternal({ href })` | `await app.openLink({ url: href })` |
-| `await window.openai.requestDisplayMode({ mode })` | `await app.requestDisplayMode({ mode })` |
-| `window.openai.notifyIntrinsicHeight(height)` | `app.sendSizeChanged({ width, height })` or `autoResize: true` |
-
-### 3. Migrate Host Context Properties
-
-| OpenAI | MCP Apps |
-|--------|----------|
-| `window.openai.theme` | `app.getHostContext()?.theme` |
-| `window.openai.locale` | `app.getHostContext()?.locale` |
-| `window.openai.displayMode` | `app.getHostContext()?.displayMode` |
-| `window.openai.maxHeight` | `app.getHostContext()?.viewport?.maxHeight` |
-| `window.openai.safeArea` | `app.getHostContext()?.safeAreaInsets` |
-| `window.openai.userAgent` | `app.getHostContext()?.userAgent` |
-
-### 4. React Migration
-
-```typescript
-// Before (OpenAI) - manual global access
-const theme = window.openai.theme;
-const toolInput = window.openai.toolInput;
-
-// After (MCP Apps) - hooks
-import { useApp, useHostStyles } from "@modelcontextprotocol/ext-apps/react";
-
-function MyApp() {
-  const { app, toolInput, toolResult, hostContext } = useApp({
-    appInfo: { name: "MyApp", version: "1.0.0" },
-    capabilities: {},
-  });
-
-  useHostStyles(app); // Handles theme, styles, fonts
-
-  // Use toolInput.arguments, toolResult.structuredContent, hostContext.theme
-}
-```
+See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-side mapping tables.
 
 ## Common Migration Mistakes
 
