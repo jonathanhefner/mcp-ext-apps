@@ -66,19 +66,51 @@ For React apps, the `useApp` hook manages this lifecycle automatically—see `ba
 
 See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-side mapping tables.
 
-## Common Migration Mistakes
+## Migration Checklist
 
-1. **Handlers after connect()** - Register ALL handlers BEFORE calling `app.connect()`. Events may fire immediately after connection.
+These migration-specific changes are easy to miss. Verify each one:
 
-2. **Wrong MIME type** - Use `RESOURCE_MIME_TYPE` constant or `text/html;profile=mcp-app` (not `text/html+skybridge`).
+### MIME Type
+```typescript
+// ❌ OpenAI
+mimeType: "text/html+skybridge"
 
-3. **Parameter name changes** - `href` -> `url` for `openLink()`, `prompt` -> structured content for `sendMessage()`.
+// ✅ MCP
+import { RESOURCE_MIME_TYPE } from "@modelcontextprotocol/ext-apps/server";
+mimeType: RESOURCE_MIME_TYPE  // "text/html;profile=mcp-app"
+```
 
-4. **Sync vs async mindset** - OpenAI pre-populates properties; MCP uses async callbacks and `getHostContext()`.
+### Visibility Format
+```typescript
+// ❌ OpenAI (boolean/string)
+"openai/widgetAccessible": true,
+"openai/visibility": "public",
 
-5. **Missing structuredContent** - MCP uses `params.structuredContent` in `ontoolresult`, not `toolOutput` directly.
+// ✅ MCP (string array)
+_meta: { ui: { visibility: ["app", "model"] } }
+```
 
-6. **Visibility format** - Use string arrays `["app", "model"]`, not boolean/string values.
+### Tool Result Access
+```typescript
+// ❌ OpenAI
+const data = window.openai.toolOutput;
+
+// ✅ MCP
+app.ontoolresult = (params) => {
+  const data = params.structuredContent;  // not params.toolOutput
+};
+```
+
+### API Parameter Names
+```typescript
+// ❌ OpenAI
+await window.openai.openExternal({ href: "https://..." });
+await window.openai.sendFollowUpMessage({ prompt: "..." });
+
+// ✅ MCP
+await app.openLink({ url: "https://..." });  // href → url
+await app.sendMessage({ role: "user", content: [{ type: "text", text: "..." }] });
+```
 
 ## Features Not Yet Available in MCP Apps
 
