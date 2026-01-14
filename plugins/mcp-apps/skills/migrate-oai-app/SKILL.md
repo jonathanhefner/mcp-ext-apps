@@ -123,7 +123,15 @@ app.ontoolinput = (params) => { ... };
 
 ### External Resource Loading
 
-Check if the app loads external resources. If it fetches from APIs or loads scripts/styles/images from external domains, configure CSP:
+Configure CSP based on how your app loads resources:
+
+| If your app... | Then add to CSP |
+|----------------|-----------------|
+| Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
+| Loads images from external hosts | Those origins in `resourceDomains` |
+| Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
+
+These origins often differ between development and production (e.g., localhost vs CDN)—configure CSP accordingly.
 
 ```typescript
 registerAppResource(server, name, uri, {
@@ -136,9 +144,8 @@ registerAppResource(server, name, uri, {
     _meta: {
       ui: {
         csp: {
-          // Preserve any dev/prod conditional logic from original codebase
-          connectDomains: [/* origins for API requests */],
           resourceDomains: [/* origins serving your scripts/styles/images */],
+          connectDomains: [/* origins for API requests */],
         },
       },
     },
