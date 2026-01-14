@@ -90,8 +90,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## CSP Configuration
 
-You **MUST** investigate what origins the app will request at runtime. MCP Apps run in a sandbox that blocks cross-origin requests by default. Trace through your HTML, build config, and source code—note every origin that assets load from, including your own asset server if it's on a different port or host than the HTML.
-
+You **MUST** identify what origins the app will request at runtime. MCP Apps run in a sandbox that blocks cross-origin requests by default. Trace through the codebase (source code, HTML, build config, etc.) to identify every origin and include it in the CSP.
 
 | If your app... | Then add to CSP |
 |----------------|-----------------|
@@ -100,7 +99,7 @@ You **MUST** investigate what origins the app will request at runtime. MCP Apps 
 | Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
 
-These origins often differ between development and production. Investigate how the codebase handles this (env vars, config files, build flags, etc.) and configure CSP using the same mechanism.
+These origins often differ between development and production. You **MUST** investigate how the codebase handles this (env vars, config files, build flags, etc.) and then configure CSP using the same mechanism.
 
 ```typescript
 registerAppResource(server, name, uri, {
