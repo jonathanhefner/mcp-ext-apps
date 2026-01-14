@@ -121,6 +121,24 @@ await app.connect();
 app.ontoolinput = (params) => { ... };
 ```
 
+### External Resource Loading
+
+Check if the app loads external resources. If it fetches from APIs or loads scripts/styles/images from external domains, configure CSP on the **MCP App resource** metadata:
+
+```typescript
+registerAppResource(server, name, uri, {
+  description: "UI resource for the MCP App",
+  _meta: {
+    ui: {
+      csp: {
+        connectDomains: [/* origins for API requests */],
+        resourceDomains: [/* origins serving your scripts/styles/images */],
+      },
+    },
+  },
+}, handler);
+```
+
 ## Testing
 
 ### Using basic-host
