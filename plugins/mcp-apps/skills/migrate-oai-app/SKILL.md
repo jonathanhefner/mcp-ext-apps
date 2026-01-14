@@ -94,12 +94,12 @@ You **MUST** identify what origins the app will request at runtime. MCP Apps run
 
 | If your app... | Then add to CSP |
 |----------------|-----------------|
-| Loads images from external hosts | Those origins in `resourceDomains` |
-| Uses fonts from a CDN | That origin in `resourceDomains` |
-| Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
-| Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
+| Loads images | Image server origins in `resourceDomains` |
+| Loads fonts | Font server origins in `resourceDomains` |
+| Loads external JS/CSS | Asset server origins in `resourceDomains` |
+| Calls APIs | API origins in `connectDomains` |
 
-These origins often differ between development and production. You **MUST** investigate how the codebase handles this (env vars, config files, build flags, etc.) and then configure CSP using the same mechanism.
+Origins may differ between development and production. You **MUST** investigate how the codebase handles that (env vars, config files, build flags, etc.) and then configure CSP using the same mechanism.
 
 ```typescript
 registerAppResource(server, name, uri, {
