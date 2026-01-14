@@ -112,7 +112,7 @@ registerAppResource(server, name, uri, {
     _meta: {
       ui: {
         csp: {
-          resourceDomains: [/* origins serving your scripts/styles/images */],
+          resourceDomains: [/* origins serving your images/fonts/scripts/styles */],
           connectDomains: [/* origins for API requests */],
         },
       },
