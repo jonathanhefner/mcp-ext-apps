@@ -136,6 +136,7 @@ registerAppResource(server, name, uri, {
     _meta: {
       ui: {
         csp: {
+          // Preserve any dev/prod conditional logic from original codebase
           connectDomains: [/* origins for API requests */],
           resourceDomains: [/* origins serving your scripts/styles/images */],
         },
