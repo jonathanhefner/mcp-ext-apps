@@ -99,7 +99,7 @@ Because MCP Apps run in a sandbox, your app will fail to load images and make AP
 | Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
 
-These origins often differ between development and production (e.g., localhost vs CDN). Investigate how the existing codebase handles the difference (e.g., env vars, build config, etc) and configure CSP accordingly.
+These origins often differ between development and production (e.g., localhost vs CDN). Investigate how the existing codebase handles the difference (e.g., env vars, build config, etc.) and configure CSP accordingly.
 
 ```typescript
 registerAppResource(server, name, uri, {
