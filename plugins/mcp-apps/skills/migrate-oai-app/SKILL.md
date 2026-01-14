@@ -81,7 +81,7 @@ These OpenAI features don't have MCP equivalents yet:
 | `window.openai.uploadFile()` / `getFileDownloadUrl()` | File operations not yet available |
 | `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
 
-## Migration Verification
+## Before Finishing
 
 After applying changes from the migration reference, verify completeness:
 
@@ -106,22 +106,7 @@ Run these searches—no matches should remain:
 | `sendFollowUpMessage` | Old method → `sendMessage()` with structured content |
 | `notifyIntrinsicHeight` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-### Handler Registration Order
-
-This can't be searched for—manually verify handlers are registered BEFORE `connect()`:
-
-```typescript
-// ✅ Correct
-app.ontoolinput = (params) => { ... };
-app.ontoolresult = (params) => { ... };
-await app.connect();
-
-// ❌ Wrong - events may fire before handlers are set
-await app.connect();
-app.ontoolinput = (params) => { ... };
-```
-
-### External Resource Loading
+### Configure CSP
 
 Configure CSP based on how your app loads resources:
 
@@ -129,6 +114,7 @@ Configure CSP based on how your app loads resources:
 |----------------|-----------------|
 | Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Loads images from external hosts | Those origins in `resourceDomains` |
+| Uses fonts from a CDN | That origin in `resourceDomains` |
 | Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
 
 These origins often differ between development and production (e.g., localhost vs CDN)—configure CSP accordingly.
