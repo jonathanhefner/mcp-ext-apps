@@ -90,7 +90,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## CSP Configuration
 
-Because MCP Apps run in a sandbox, your app will fail to load images and make API calls without CSP configuration.
+You **MUST** investigate how the app loads external resources. MCP Apps run in a sandbox, so your app will fail to load images and make API calls without proper CSP configuration.
 
 | If your app... | Then add to CSP |
 |----------------|-----------------|
@@ -99,7 +99,7 @@ Because MCP Apps run in a sandbox, your app will fail to load images and make AP
 | Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
 
-These origins often differ between development and production (e.g., localhost vs CDN). Investigate how the existing codebase handles the difference (e.g., env vars, build config, etc.) and configure CSP accordingly:
+These origins often differ between development and production (e.g., localhost vs CDN). Investigate how the existing codebase handles the difference (e.g., env vars, build config, etc.) and configure CSP to match its existing patterns.
 
 ```typescript
 registerAppResource(server, name, uri, {
@@ -136,9 +136,9 @@ After applying changes from the migration reference, search for leftover OpenAI 
 **Client-side:**
 | Pattern | Indicates |
 |---------|-----------|
-| `window.openai` | Old global API → `App` instance methods |
 | `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
 | `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
+| `window.openai` | Old global API → `App` instance methods |
 | `callTool(` | Old method → `callServerTool()` |
 | `openExternal(` | Old method → `openLink({ url: ... })` |
 | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
