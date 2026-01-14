@@ -88,42 +88,15 @@ These OpenAI features don't have MCP equivalents yet:
 | `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
 | `window.openai.view` | Not yet available |
 
-## Before Finishing
+## CSP Configuration
 
-After applying changes from the migration reference, verify completeness:
-
-### Search for Remaining OpenAI Patterns
-
-Run these searches—no matches should remain:
-
-**Server-side:**
-| Pattern | Indicates |
-|---------|-----------|
-| `"openai/` | Old metadata keys → `_meta.ui.*` |
-| `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` constant |
-| `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
-| `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
-
-**Client-side:**
-| Pattern | Indicates |
-|---------|-----------|
-| `window.openai` | Old global API → `App` instance methods |
-| `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
-| `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
-| `callTool(` | Old method → `callServerTool()` |
-| `openExternal(` | Old method → `openLink({ url: ... })` |
-| `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
-| `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
-
-### Configure CSP
-
-Configure CSP based on how your app loads resources:
+Because MCP Apps run in a sandbox, your app will fail to load images and make API calls without CSP configuration.
 
 | If your app... | Then add to CSP |
 |----------------|-----------------|
-| Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Loads images from external hosts | Those origins in `resourceDomains` |
 | Uses fonts from a CDN | That origin in `resourceDomains` |
+| Serves JS/CSS from a separate server or CDN | That origin in `resourceDomains` |
 | Calls third-party APIs (maps, auth, etc.) | Those origins in `connectDomains` |
 
 These origins often differ between development and production (e.g., localhost vs CDN)—configure CSP accordingly.
@@ -147,6 +120,29 @@ registerAppResource(server, name, uri, {
   }],
 }));
 ```
+
+## Before Finishing
+
+After applying changes from the migration reference, search for leftover OpenAI patterns:
+
+**Server-side:**
+| Pattern | Indicates |
+|---------|-----------|
+| `"openai/` | Old metadata keys → `_meta.ui.*` |
+| `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` constant |
+| `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
+| `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
+
+**Client-side:**
+| Pattern | Indicates |
+|---------|-----------|
+| `window.openai` | Old global API → `App` instance methods |
+| `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
+| `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
+| `callTool(` | Old method → `callServerTool()` |
+| `openExternal(` | Old method → `openLink({ url: ... })` |
+| `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
+| `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
 ## Testing
 
