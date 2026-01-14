@@ -24,19 +24,6 @@ git clone --branch "v$(npm view @modelcontextprotocol/ext-apps version)" --depth
 Read the complete migration reference with exhaustive mapping tables:
 - `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` - Full server-side and client-side mappings
 
-### Framework Templates
-
-Adapt from `/tmp/mcp-ext-apps/examples/basic-server-{framework}/`:
-
-| Template | Key Files |
-|----------|-----------|
-| `basic-server-vanillajs/` | `server.ts`, `src/mcp-app.ts`, `mcp-app.html` |
-| `basic-server-react/` | `server.ts`, `src/mcp-app.tsx` (uses `useApp` hook) |
-| `basic-server-vue/` | `server.ts`, `src/App.vue` |
-| `basic-server-svelte/` | `server.ts`, `src/App.svelte` |
-| `basic-server-preact/` | `server.ts`, `src/mcp-app.tsx` |
-| `basic-server-solid/` | `server.ts`, `src/mcp-app.tsx` |
-
 ### API Reference (Source Files)
 
 Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/`:
@@ -48,6 +35,19 @@ Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/`:
 | `src/spec.types.ts` | Type definitions |
 | `src/react/useApp.tsx` | `useApp` hook for React apps |
 | `src/react/use*.ts*` | Other `use*` hooks for React apps |
+
+### Front-End Framework Examples
+
+See `/tmp/mcp-ext-apps/examples/basic-server-{framework}/` for basic SDK usage examples organized by front-end framework:
+
+| Template | Key Files |
+|----------|-----------|
+| `basic-server-vanillajs/` | `server.ts`, `src/mcp-app.ts`, `mcp-app.html` |
+| `basic-server-react/` | `server.ts`, `src/mcp-app.tsx` (uses `useApp` hook) |
+| `basic-server-vue/` | `server.ts`, `src/App.vue` |
+| `basic-server-svelte/` | `server.ts`, `src/App.svelte` |
+| `basic-server-preact/` | `server.ts`, `src/mcp-app.tsx` |
+| `basic-server-solid/` | `server.ts`, `src/mcp-app.tsx` |
 
 ## Key Conceptual Changes
 
