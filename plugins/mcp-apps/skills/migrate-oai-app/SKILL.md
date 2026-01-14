@@ -99,7 +99,7 @@ You **MUST** identify what origins the app will request at runtime, in *both* de
 | Loads fetched JS/CSS | Asset server origins in `resourceDomains` |
 | Calls APIs | API origins in `connectDomains` |
 
-Origins can differ between development and production. You **MUST** thoroughly analyze how the codebase handles *both* cases (e.g., env vars, config files, build flags, etc.) and then configure CSP using that same mechanism.
+Origins can differ between development and production. You **MUST** thoroughly investigate how the codebase handles *both* cases (e.g., env vars, config files, build flags, etc.) and then configure CSP using that same mechanism.
 
 ```typescript
 registerAppResource(server, name, uri, {
