@@ -74,12 +74,19 @@ See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-sid
 
 These OpenAI features don't have MCP equivalents yet:
 
-| OpenAI Feature | Workaround |
-|----------------|------------|
-| `_meta["openai/toolInvocation/invoking"]` / `invoked` | Progress indicators not yet available |
+**Server-side:**
+| OpenAI Feature | Status/Workaround |
+|----------------|-------------------|
+| `_meta["openai/toolInvocation/invoking"]` / `_meta["openai/toolInvocation/invoked"]` | Progress indicators not yet available |
+| `_meta["openai/widgetDescription"]` | Use `app.updateModelContext()` for dynamic context |
+
+**Client-side:**
+| OpenAI Feature | Status/Workaround |
+|----------------|-------------------|
 | `window.openai.widgetState` / `setWidgetState()` | Use `localStorage` or server-side state |
 | `window.openai.uploadFile()` / `getFileDownloadUrl()` | File operations not yet available |
 | `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
+| `window.openai.view` | Not yet available |
 
 ## Before Finishing
 
@@ -101,10 +108,12 @@ Run these searches—no matches should remain:
 | Pattern | Indicates |
 |---------|-----------|
 | `window.openai` | Old global API → `App` instance methods |
-| `.toolOutput` | Wrong property → `params.structuredContent` in `ontoolresult` |
-| `{ href:` | Old param name → `{ url:` for `openLink()` |
-| `sendFollowUpMessage` | Old method → `sendMessage()` with structured content |
-| `notifyIntrinsicHeight` | Old size API → `sendSizeChanged()` or `autoResize: true` |
+| `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
+| `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
+| `callTool(` | Old method → `callServerTool()` |
+| `openExternal(` | Old method → `openLink({ url: ... })` |
+| `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
+| `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
 ### Configure CSP
 
