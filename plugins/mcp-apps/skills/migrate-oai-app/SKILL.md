@@ -120,7 +120,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
     | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-- [ ] Verify that you correctly configured CSP.
+- [ ] Double-check that you correctly configured CSP.
 
     ```typescript
     registerAppResource(server, name, uri, {
@@ -142,9 +142,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Double-check that you included all of those origins in the CSP as well.
+- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Look at the CSP code again and double-check that you included all of those origins.
 
-- [ ] Look at the build config (config files, env vars, etc.) and find the mechanism your codebase uses for dev vs prod URLs. Double-check that you used the exact same mechanism in the CSP code for including dev origins in development only.
+- [ ] Look at the build config (config files, env vars, etc.) and name the specific configuration mechanism your codebase uses for dev vs prod URLs. Look the CSP code again and double-check that you used the exact same configuration mechanism for including dev origins in development only.
 
 ## Testing
 
