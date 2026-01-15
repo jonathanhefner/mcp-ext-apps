@@ -49,6 +49,35 @@ See `/tmp/mcp-ext-apps/examples/basic-server-{framework}/` for basic SDK usage e
 | `basic-server-preact/` | `server.ts`, `src/mcp-app.tsx` |
 | `basic-server-solid/` | `server.ts`, `src/mcp-app.tsx` |
 
+## CSP Configuration
+
+Before migrating:
+
+1. Identify which origins the app fetches assets (images, fonts, JS, CSS) from or makes API calls to
+2. Identify how the codebase switches between origins for local development vs production (e.g., env vars, config files, build flags, etc.)
+
+After migrating, ensure that CSP is correctly configured for both local development and production:
+
+```typescript
+registerAppResource(server, name, uri, {
+  description: "UI resource for the MCP App",
+}, async () => ({
+  contents: [{
+    uri,
+    mimeType: RESOURCE_MIME_TYPE,
+    text: html,
+    _meta: {
+      ui: {
+        csp: {
+          resourceDomains: [/* origins serving images/fonts/scripts/styles */],
+          connectDomains: [/* origins for API requests */],
+        },
+      },
+    },
+  }],
+}));
+```
+
 ## Key Conceptual Changes
 
 ### Server-Side
@@ -87,38 +116,6 @@ These OpenAI features don't have MCP equivalents yet:
 | `window.openai.uploadFile()` / `getFileDownloadUrl()` | File operations not yet available |
 | `window.openai.requestModal()` / `requestClose()` | Modal management not yet available |
 | `window.openai.view` | Not yet available |
-
-## CSP Configuration
-
-MCP Apps run in a sandbox that blocks cross-origin requests by default. You **MUST** investigate and answer the following questions:
-
-- [ ] What origins receive API calls (fetch/XHR)?
-- [ ] What origins serve images/fonts?
-- [ ] What origins serve JS/CSS in production?
-- [ ] What origins serve JS/CSS in development (e.g., `http://localhost:${port}`)?
-- [ ] What existing env var or config should CSP check to conditionally include the dev server origin?
-
-If the above questions identify origins, you **MUST** configure CSP:
-
-```typescript
-registerAppResource(server, name, uri, {
-  description: "UI resource for the MCP App",
-}, async () => ({
-  contents: [{
-    uri,
-    mimeType: RESOURCE_MIME_TYPE,
-    text: html,
-    _meta: {
-      ui: {
-        csp: {
-          resourceDomains: [/* origins serving your images/fonts/scripts/styles */],
-          connectDomains: [/* origins for API requests */],
-        },
-      },
-    },
-  }],
-}));
-```
 
 ## Before Finishing
 
