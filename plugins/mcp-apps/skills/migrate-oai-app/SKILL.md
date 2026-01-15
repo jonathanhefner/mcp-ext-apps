@@ -9,7 +9,8 @@ Migrate existing OpenAI Apps SDK applications to the MCP Apps SDK (`@modelcontex
 
 ## Best Practices
 
-Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `yarn add`) rather than manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
+- Re-read this skill when you are done! The migration will be a long process, and you might forget some things, so preemptively add a final To-Do item to review the skill.
+- Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `yarn add`) rather than manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
 
 ## Getting Reference Code
 
@@ -19,14 +20,13 @@ Clone the SDK repository for complete migration documentation and working exampl
 git clone --branch "v$(npm view @modelcontextprotocol/ext-apps version)" --depth 1 https://github.com/modelcontextprotocol/ext-apps.git /tmp/mcp-ext-apps
 ```
 
-### Migration Documentation
+### Migration Reference Guide
 
-Read the complete migration reference with exhaustive mapping tables:
-- `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` - Full server-side and client-side mappings
+Read the migration reference guide with "before/after" mapping tables: `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md`
 
 ### API Reference (Source Files)
 
-Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/`:
+Read JSDoc documentation directly from `/tmp/mcp-ext-apps/src/*`:
 
 | File | Contents |
 |------|----------|
@@ -64,7 +64,7 @@ MCP Apps run in a sandbox that blocks cross-origin requests by default. You will
 
 Use `registerAppTool()` and `registerAppResource()` helpers instead of raw `server.registerTool()` / `server.registerResource()`. These helpers handle the MCP Apps metadata format automatically.
 
-See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete server-side mapping tables.
+See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for server-side mapping tables.
 
 ### Client-Side
 
@@ -77,7 +77,7 @@ Key differences:
 
 For React apps, the `useApp` hook manages this lifecycle automatically—see `basic-server-react/` for the pattern.
 
-See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for complete client-side mapping tables.
+See `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md` for client-side mapping tables.
 
 ### Features Not Yet Available in MCP Apps
 
@@ -99,7 +99,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-- Did you migrate all OpenAI patterns?
+- [ ] Did you migrate all OpenAI patterns?
 
     **Server-side:**
     | Pattern | Indicates |
@@ -120,11 +120,11 @@ These OpenAI features don't have MCP equivalents yet:
     | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
     | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-- Did you correctly configure CSP for both local development and production?
+- [ ] Did you correctly configure CSP for both local development and production?
 
     ```typescript
     registerAppResource(server, name, uri, {
-      description: "UI resource for the MCP App",
+      description: "UI resource for your MCP App",
     }, async () => ({
       contents: [{
         uri,
@@ -164,21 +164,4 @@ SERVERS='["http://localhost:3001/mcp"]' npm run start
 Once the app loads in basic-host, confirm:
 1. App loads without console errors
 2. `ontoolinput` handler fires with tool arguments
-3. `ontoolresult` handler fires with `structuredContent`
-4. Theme/context changes propagate to the UI
-
-### Debug with sendLog
-
-Send debug logs to the host application:
-
-```typescript
-await app.sendLog({ level: "info", data: "Debug message" });
-await app.sendLog({ level: "error", data: { error: err.message } });
-```
-
-## Full Migration Reference
-
-For exhaustive mapping tables covering all server-side and client-side properties, consult:
-- `/tmp/mcp-ext-apps/docs/migrate_from_openai_apps.md`
-
-This reference includes detailed mappings for tool metadata, resource metadata, host context properties, event handlers, and all API methods.
+3. `ontoolresult` handler fires with tool result
