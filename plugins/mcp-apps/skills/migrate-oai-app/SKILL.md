@@ -144,7 +144,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 - [ ] Look at the build output and find every localhost origin your app needs in development (asset server, API server, etc.). Did you remember to include all of those origins in the CSP as well?
 
-- [ ] Find how this codebase switches between dev/prod configurations (env vars, config files, build flags, etc). Did you remember to use the same mechanism in the CSP code so that dev origins are only included in development?
+- [ ] Look at the build config (config files, env vars, etc.) and find how this codebase handles the difference between dev and prod. Did you remember to use the same mechanism in the CSP code so that dev origins are only included in development?
 
 ## Testing
 
