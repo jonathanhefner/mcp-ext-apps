@@ -100,6 +100,7 @@ You **MUST** also identify how the codebase handles local origins for developmen
 | Loads fonts | Font server origins in `resourceDomains` |
 | Loads fetched JS/CSS | Asset server origins in `resourceDomains` |
 | Calls APIs | API origins in `connectDomains` |
+| Uses a dev server for assets | Dev server origin in `resourceDomains` **in development only** |
 
 ```typescript
 registerAppResource(server, name, uri, {
