@@ -9,7 +9,7 @@ Migrate existing OpenAI Apps SDK applications to the MCP Apps SDK (`@modelcontex
 
 ## Best Practices
 
-- Re-read this skill when you are done! The migration will be a long process, and you might forget some things. Preemptively add a final To-Do item: "Re-read all sections of this skill from the beginning and verify each requirement is addressed."
+- Re-read this skill when you are done! The migration will be a long process, and you might forget some things. Preemptively add a final To-Do item with this exact wording: "Re-read all sections of this skill from the beginning and verify each requirement is addressed."
 - Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `yarn add`) rather than manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
 
 ## Getting Reference Code
