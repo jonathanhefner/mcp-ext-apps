@@ -53,30 +53,10 @@ See `/tmp/mcp-ext-apps/examples/basic-server-{framework}/` for basic SDK usage e
 
 Before migrating:
 
-1. Identify which origins the app fetches assets (images, fonts, JS, CSS) from or makes API calls to
-2. Identify how the codebase switches between origins for local development vs production (e.g., env vars, config files, build flags, etc.)
+1. Identify which origins your app fetches assets (images/fonts/JS/CSS) from or makes API requests to
+2. Identify how your codebase switches between origins for local development vs production (e.g., env vars, config files, build flags, etc.)
 
-After migrating, ensure that CSP is correctly configured for both local development and production:
-
-```typescript
-registerAppResource(server, name, uri, {
-  description: "UI resource for the MCP App",
-}, async () => ({
-  contents: [{
-    uri,
-    mimeType: RESOURCE_MIME_TYPE,
-    text: html,
-    _meta: {
-      ui: {
-        csp: {
-          resourceDomains: [/* origins serving images/fonts/scripts/styles */],
-          connectDomains: [/* origins for API requests */],
-        },
-      },
-    },
-  }],
-}));
-```
+MCP Apps run in a sandbox that blocks cross-origin requests by default. You will need to correctly configure CSP for both local development and production; otherwise, your app will not work.
 
 ## Key Conceptual Changes
 
@@ -119,26 +99,48 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-After applying changes from the migration reference, search for leftover OpenAI patterns:
+- Did you migrate all OpenAI patterns?
 
-**Server-side:**
-| Pattern | Indicates |
-|---------|-----------|
-| `"openai/` | Old metadata keys → `_meta.ui.*` |
-| `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` constant |
-| `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
-| `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
+    **Server-side:**
+    | Pattern | Indicates |
+    |---------|-----------|
+    | `"openai/` | Old metadata keys → `_meta.ui.*` |
+    | `text/html+skybridge` | Old MIME type → `RESOURCE_MIME_TYPE` constant |
+    | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
+    | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
-**Client-side:**
-| Pattern | Indicates |
-|---------|-----------|
-| `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
-| `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
-| `window.openai` | Old global API → `App` instance methods |
-| `callTool(` | Old method → `callServerTool()` |
-| `openExternal(` | Old method → `openLink({ url: ... })` |
-| `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
-| `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
+    **Client-side:**
+    | Pattern | Indicates |
+    |---------|-----------|
+    | `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
+    | `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
+    | `window.openai` | Old global API → `App` instance methods |
+    | `callTool(` | Old method → `callServerTool()` |
+    | `openExternal(` | Old method → `openLink({ url: ... })` |
+    | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
+    | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
+
+- Did you correctly configure CSP for both local development and production?
+
+    ```typescript
+    registerAppResource(server, name, uri, {
+      description: "UI resource for the MCP App",
+    }, async () => ({
+      contents: [{
+        uri,
+        mimeType: RESOURCE_MIME_TYPE,
+        text: html,
+        _meta: {
+          ui: {
+            csp: {
+              resourceDomains: [/* origins serving images/fonts/JS/CSS */],
+              connectDomains: [/* origins for API requests */],
+            },
+          },
+        },
+      }],
+    }));
+    ```
 
 ## Testing
 
