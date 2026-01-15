@@ -144,7 +144,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 - [ ] Enumerate all origins that your app connects to in local development (e.g., asset server running on localhost, etc.). Be extremely thorough. Does the CSP support all of those origins?
 
-- [ ] Does the CSP use the codebase's innate mechanism to switch between origins for local development vs production?
+- [ ] Identify the mechanism that your codebase uses for dev/prod origin switching. Does the CSP use it?
 
 ## Testing
 
