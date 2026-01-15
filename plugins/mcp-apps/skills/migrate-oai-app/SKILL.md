@@ -99,7 +99,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-- [ ] Verify that you migrated all server-side OpenAI patterns.
+- [ ] Double-check that you migrated all server-side OpenAI patterns.
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -108,7 +108,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
     | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
-- [ ] Verify that you migrated all client-side OpenAI patterns.
+- [ ] Double-check that you migrated all client-side OpenAI patterns.
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -142,9 +142,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Verify that you included all of those origins in the CSP as well.
+- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Double-check that you included all of those origins in the CSP as well.
 
-- [ ] Look at the build config (config files, env vars, etc.) and find how your codebase handles dev vs prod URLs. Verify that you used the exact same mechanism in the CSP code to include dev origins in development only.
+- [ ] Look at the build config (config files, env vars, etc.) and find the mechanism your codebase uses for dev vs prod URLs. Double-check that you used the exact same mechanism in the CSP code for including dev origins in development only.
 
 ## Testing
 
