@@ -95,16 +95,10 @@ MCP Apps run in a sandbox that blocks cross-origin requests by default. Before i
 - What origins receive API calls (fetch/XHR)?
 - What origins serve images/fonts?
 - What origins serve JS/CSS in production?
-- What origins serve JS/CSS in development?
+- What origins serve JS/CSS in development (e.g., `http://localhost:${port}`)?
 - What existing env var or config should CSP check to conditionally include the dev server origin?
 
-| If your app... | Then add to CSP |
-|----------------|-----------------|
-| Calls APIs | API origins in `connectDomains` |
-| Loads images | Image server origins in `resourceDomains` |
-| Loads fonts | Font server origins in `resourceDomains` |
-| Loads fetched JS/CSS | Asset server origins in `resourceDomains` |
-| Uses a dev server for assets (e.g., localhost) | Dev server origin in `resourceDomains` **in development only** |
+If the above questions identify origins, you **MUST** configure CSP:
 
 ```typescript
 registerAppResource(server, name, uri, {
