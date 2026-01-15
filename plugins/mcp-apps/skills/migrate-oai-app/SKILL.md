@@ -142,7 +142,7 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] Does CSP work for local development and use the codebase's innate mechanism for dev vs prod?
+- [ ] Does CSP work for local development using the codebase's innate mechanism for dev vs prod?
 
 ## Testing
 
