@@ -99,9 +99,8 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-- [ ] Did you migrate all OpenAI patterns?
+- [ ] Did you migrate all server-side OpenAI patterns?
 
-    **Server-side:**
     | Pattern | Indicates |
     |---------|-----------|
     | `"openai/` | Old metadata keys → `_meta.ui.*` |
@@ -109,7 +108,8 @@ These OpenAI features don't have MCP equivalents yet:
     | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
     | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
-    **Client-side:**
+- [ ] Did you migrate all client-side OpenAI patterns?
+
     | Pattern | Indicates |
     |---------|-----------|
     | `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
@@ -142,7 +142,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] Does CSP work for local development using the codebase's innate mechanism for dev vs prod?
+- [ ] Does the CSP support local development servers (e.g., localhost asset server, etc.)?
+
+- [ ] Does the CSP use the codebase's innate mechanism to switch between origins for local development vs production?
 
 ## Testing
 
