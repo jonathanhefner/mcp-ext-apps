@@ -120,7 +120,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
     | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-- [ ] Did you correctly configure CSP for both local development and production?
+- [ ] Did you correctly configure CSP?
 
     ```typescript
     registerAppResource(server, name, uri, {
@@ -141,6 +141,8 @@ These OpenAI features don't have MCP equivalents yet:
       }],
     }));
     ```
+
+- [ ] Does CSP work for local development and use the codebase's innate mechanism for dev vs prod?
 
 ## Testing
 
