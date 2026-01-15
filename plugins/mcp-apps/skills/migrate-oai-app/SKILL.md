@@ -90,7 +90,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## CSP Configuration
 
-MCP Apps run in a sandbox that blocks cross-origin requests by default. Before implementing, identify all origins:
+MCP Apps run in a sandbox that blocks cross-origin requests by default. You **MUST** investigate and answer the following questions:
 
 - [ ] What origins receive API calls (fetch/XHR)?
 - [ ] What origins serve images/fonts?
