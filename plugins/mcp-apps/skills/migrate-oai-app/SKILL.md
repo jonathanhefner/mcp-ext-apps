@@ -5,11 +5,11 @@ description: This skill should be used when the user asks to "migrate from OpenA
 
 # Migrate OpenAI App to MCP
 
-Migrate existing OpenAI Apps SDK applications to the MCP Apps SDK (`@modelcontextprotocol/ext-apps`). The MCP Apps SDK provides a standardized, open protocol for interactive UIs in conversational clients, with automatic environment detection for both OpenAI and MCP hosts.
+Migrate existing OpenAI Apps SDK applications to the MCP Apps SDK (`@modelcontextprotocol/ext-apps`). The MCP Apps SDK provides a standardized, open protocol for interactive UIs in conversational clients.
 
 ## Best Practices
 
-- Re-read this skill when you are done! The migration will be a long process, and you might forget some things, so preemptively add a final To-Do item to review the skill.
+- Re-read this skill when you are done! The migration will be a long process, and you might forget some things. Preemptively add a final To-Do item: "Re-read all sections of this skill from the beginning and verify each requirement is addressed."
 - Use your package manager to add dependencies (e.g., `npm install`, `pnpm add`, `yarn add`) rather than manually writing version numbers. This lets the package manager resolve the latest compatible versions. Never specify version numbers from memory.
 
 ## Getting Reference Code
