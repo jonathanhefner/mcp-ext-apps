@@ -92,11 +92,11 @@ These OpenAI features don't have MCP equivalents yet:
 
 MCP Apps run in a sandbox that blocks cross-origin requests by default. Before implementing, identify all origins:
 
-- What origins receive API calls (fetch/XHR)?
-- What origins serve images/fonts?
-- What origins serve JS/CSS in production?
-- What origins serve JS/CSS in development (e.g., `http://localhost:${port}`)?
-- What existing env var or config should CSP check to conditionally include the dev server origin?
+- [ ] What origins receive API calls (fetch/XHR)?
+- [ ] What origins serve images/fonts?
+- [ ] What origins serve JS/CSS in production?
+- [ ] What origins serve JS/CSS in development (e.g., `http://localhost:${port}`)?
+- [ ] What existing env var or config should CSP check to conditionally include the dev server origin?
 
 If the above questions identify origins, you **MUST** configure CSP:
 
