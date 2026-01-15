@@ -90,16 +90,20 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## CSP Configuration
 
-You **MUST** identify what origins the app will request at runtime, for _both development and production_. MCP Apps run in a sandbox that blocks cross-origin requests by default. Trace through the codebase (source code, HTML, build config, etc.) to identify every origin and include it in the CSP.
+MCP Apps run in a sandbox that blocks cross-origin requests by default. Before implementing, identify all origins:
 
-You **MUST** also identify how the codebase handles local origins for development vs external origins for production (e.g., environment variables, config files, build flags, etc.). Use that same mechanism when including origins in the CSP.
+- What origins receive API calls (fetch/XHR)?
+- What origins serve images/fonts?
+- What origins serve JS/CSS in production?
+- What origins serve JS/CSS in development?
+- What existing env var or config should CSP check to conditionally include the dev server origin?
 
 | If your app... | Then add to CSP |
 |----------------|-----------------|
+| Calls APIs | API origins in `connectDomains` |
 | Loads images | Image server origins in `resourceDomains` |
 | Loads fonts | Font server origins in `resourceDomains` |
 | Loads fetched JS/CSS | Asset server origins in `resourceDomains` |
-| Calls APIs | API origins in `connectDomains` |
 | Uses a dev server for assets (e.g., localhost) | Dev server origin in `resourceDomains` **in development only** |
 
 ```typescript
