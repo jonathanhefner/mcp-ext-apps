@@ -99,7 +99,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-- [ ] Did you migrate all server-side OpenAI patterns?
+- [ ] Verify that you migrated all server-side OpenAI patterns.
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -108,7 +108,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
     | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
-- [ ] Did you migrate all client-side OpenAI patterns?
+- [ ] Verify that you migrated all client-side OpenAI patterns.
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -120,7 +120,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
     | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-- [ ] Did you correctly configure CSP?
+- [ ] Verify that you correctly configured CSP.
 
     ```typescript
     registerAppResource(server, name, uri, {
@@ -142,9 +142,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Did you remember to include all of those origins in the CSP as well?
+- [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Verify that you included all of those origins in the CSP as well.
 
-- [ ] Look at the build config (config files, env vars, etc.) and find how your codebase handles dev vs prod URLs. Did you remember to use that exact same mechanism in the CSP code so that dev origins are only included in development?
+- [ ] Look at the build config (config files, env vars, etc.) and find how your codebase handles dev vs prod URLs. Verify that you used the exact same mechanism in the CSP code to include dev origins in development only.
 
 ## Testing
 
