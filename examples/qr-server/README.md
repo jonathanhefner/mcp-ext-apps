@@ -6,14 +6,20 @@ A minimal Python MCP server that generates customizable QR codes with an interac
 
 ## MCP Client Configuration
 
-Add to your MCP client configuration (stdio transport):
+First, clone the repository:
+
+```bash
+git clone https://github.com/modelcontextprotocol/ext-apps.git
+```
+
+Then add to your MCP client configuration (stdio transport), replacing the path with your clone location:
 
 ```json
 {
   "mcpServers": {
     "qr": {
       "command": "uv",
-      "args": ["run", "/path/to/qr-server/server.py", "--stdio"]
+      "args": ["run", "/path/to/ext-apps/examples/qr-server/server.py", "--stdio"]
     }
   }
 }
