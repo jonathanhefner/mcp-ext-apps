@@ -99,7 +99,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 ## Before Finishing
 
-- [ ] Double-check that you migrated all server-side OpenAI patterns.
+- [ ] Double-check that you migrated all server-side OpenAI patterns:
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -108,7 +108,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `text/html;profile=mcp-app` | New MIME type, but prefer `RESOURCE_MIME_TYPE` constant |
     | `_domains"` or `_domains:` | snake_case CSP → camelCase (`connect_domains` → `connectDomains`) |
 
-- [ ] Double-check that you migrated all client-side OpenAI patterns.
+- [ ] Double-check that you migrated all client-side OpenAI patterns:
 
     | Pattern | Indicates |
     |---------|-----------|
@@ -120,7 +120,7 @@ These OpenAI features don't have MCP equivalents yet:
     | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
     | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
-- [ ] Double-check that you correctly configured CSP.
+- [ ] Double-check that you correctly configured CSP:
 
     ```typescript
     registerAppResource(server, name, uri, {
@@ -144,7 +144,7 @@ These OpenAI features don't have MCP equivalents yet:
 
 - [ ] Look at the built files and find every localhost origin your app needs in development (asset server, API server, etc.). Double-check that you included all of those origins in the CSP.
 
-- [ ] Look at the build config (config files, env vars, etc.) and find the specific configuration mechanism your codebase uses for dev vs prod URLs. Compare that mechanism with the mechanism the CSP code uses for including dev origins only in development. Ensure that mechanisms will automatically stay in sync.
+- [ ] Look at the build config (config files, env vars, etc.) and find every setting that affects dev vs prod URLs. Double-check that each setting affects dev vs prod CSP origins in the exact same way. You must justify out loud any hard-coded CSP origins.
 
 ## Testing
 
