@@ -115,10 +115,6 @@ These OpenAI features don't have MCP equivalents yet:
     | `window.openai.toolInput` | Old global → `params.arguments` in `ontoolinput` handler |
     | `window.openai.toolOutput` | Old global → `params.structuredContent` in `ontoolresult` |
     | `window.openai` | Old global API → `App` instance methods |
-    | `callTool(` | Old method → `callServerTool()` |
-    | `openExternal(` | Old method → `openLink({ url: ... })` |
-    | `sendFollowUpMessage(` | Old method → `sendMessage()` with structured content |
-    | `notifyIntrinsicHeight(` | Old size API → `sendSizeChanged()` or `autoResize: true` |
 
 - [ ] Double-check that you correctly configured CSP:
 
@@ -142,9 +138,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] In the built files, search for every localhost origin your app needs in development (asset server, API server, etc.). Make sure that you included all of those origins in the CSP.
+- [ ] In the built files, search for every localhost origin your app needs in development (asset server, API server, etc.). Then double-check that each of those origins are included in the CSP.
 
-- [ ] In the build config (config files, env vars, etc.), search for every setting that affects dev vs prod URLs. Make sure each of those settings also affect dev vs prod CSP origins in the same way.
+- [ ] In the build config (build scripts, config files, env vars, etc.), search for every setting that affects dev vs prod URLs. Explain out loud how those settings affect dev vs prod URLs. Then double-check that each of those settings also affect dev vs prod CSP origins in the same way.
 
 ## Testing
 
