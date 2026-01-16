@@ -138,9 +138,9 @@ These OpenAI features don't have MCP equivalents yet:
     }));
     ```
 
-- [ ] In the build config (build scripts, config files, env vars, etc.), search for every setting that affects dev vs prod URLs. Explain out loud how those settings control dev vs prod URLs. Then double-check that each of those settings also controls dev vs prod CSP origins in the same way.
-
 - [ ] In the built files, search for every localhost origin your app needs in development (asset server, API server, etc.). Then double-check that each of those origins are included in the CSP.
+
+- [ ] Double-check that dev CSP origins are not leaked in prod. If there are build config settings (e.g., env vars, etc) that control dev vs prod URLs, try to use those for dev vs prod CSP origins.
 
 ## Testing
 
