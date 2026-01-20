@@ -12,6 +12,8 @@ Set {@link types!McpUiToolMeta.visibility Tool.\_meta.ui.visibility} to `["app"]
 
 {@includeCode ../src/server/index.examples.ts#registerAppTool_appOnlyVisibility}
 
+_See [`examples/system-monitor-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/system-monitor-server) for a full implementation of this pattern._
+
 ## Reading large amounts of data via chunked tool calls
 
 Some host platforms have size limits on tool call responses, so large files (PDFs, images, etc.) cannot be sent in a single response. Use an app-only tool with chunked responses to bypass these limits while keeping the data out of model context.
@@ -23,6 +25,8 @@ Some host platforms have size limits on tool call responses, so large files (PDF
 **Client-side**: Loop calling the tool until all chunks are received:
 
 {@includeCode ./patterns.tsx#chunkedDataClient}
+
+_See [`examples/pdf-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/pdf-server) for a full implementation of this pattern._
 
 ## Giving errors back to model
 
@@ -48,6 +52,8 @@ Use the SDK's style helpers to apply host styling, then reference them in your C
 
 {@includeCode ./patterns.tsx#hostStylingReact}
 
+_See [`examples/basic-server-vanillajs/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-server-vanillajs) and [`examples/basic-server-react/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-server-react) for full implementations of this pattern._
+
 ## Entering / Exiting fullscreen
 
 Toggle fullscreen mode by calling {@link app!App.requestDisplayMode requestDisplayMode}:
@@ -58,17 +64,23 @@ Listen for display mode changes via {@link app!App.onhostcontextchanged onhostco
 
 {@includeCode ../src/app.examples.ts#App_onhostcontextchanged_respondToDisplayMode}
 
+_See [`examples/shadertoy-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/shadertoy-server) for a full implementation of this pattern._
+
 ## Passing contextual information from the App to the Model
 
 Use {@link app!App.updateModelContext updateModelContext} to keep the model informed about what the user is viewing or interacting with. Structure the content with YAML frontmatter for easy parsing:
 
 {@includeCode ../src/app.examples.ts#App_updateModelContext_appState}
 
+_See [`examples/map-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/map-server) for a full implementation of this pattern._
+
 ## Sending large follow-up messages
 
 When you need to send more data than fits in a message, use {@link app!App.updateModelContext updateModelContext} to set the context first, then {@link app!App.sendMessage sendMessage} with a brief prompt to trigger a response:
 
 {@includeCode ../src/app.examples.ts#App_sendMessage_withLargeContext}
+
+_See [`examples/transcript-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/transcript-server) for a full implementation of this pattern._
 
 ## Persisting widget state
 
@@ -82,13 +94,15 @@ To persist widget state across conversation reloads (e.g., current page in a PDF
 
 {@includeCode ./patterns.tsx#persistData}
 
-> **Note:** For model-visible state (informing the LLM about what the user is viewing), use {@link app!App.updateModelContext updateModelContext} instead. Widget state persistence is for UI state that should survive page reloads but doesn't need to be seen by the model.
+_See [`examples/map-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/map-server) for a full implementation of this pattern._
 
 ## Pausing computation-heavy widgets when out of view
 
 Widgets with animations, WebGL rendering, or polling can consume significant CPU/GPU even when scrolled out of view. Use [`IntersectionObserver`](https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API) to pause expensive operations when the widget isn't visible:
 
 {@includeCode ./patterns.tsx#visibilityBasedPause}
+
+_See [`examples/shadertoy-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/shadertoy-server) for a full implementation of this pattern._
 
 ## Lowering perceived latency
 
@@ -98,3 +112,5 @@ Use {@link app!App.ontoolinputpartial ontoolinputpartial} to receive streaming t
 
 > [!IMPORTANT]
 > Partial arguments are "healed" JSON — the host closes unclosed brackets/braces to produce valid JSON. This means objects may be incomplete (e.g., the last item in an array may be truncated). Don't rely on partial data for critical operations; use it only for preview UI.
+
+_See [`examples/threejs-server/`](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/threejs-server) for a full implementation of this pattern._
