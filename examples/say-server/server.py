@@ -1429,7 +1429,8 @@ def load_tts_model():
 def create_app():
     """Create the ASGI app (for uvicorn reload mode)."""
     load_tts_model()
-    app = mcp.streamable_http_app(stateless_http=True)
+    # Pass host=HOST to disable DNS rebinding protection for non-localhost deployments
+    app = mcp.streamable_http_app(stateless_http=True, host=HOST)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
