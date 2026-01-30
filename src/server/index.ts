@@ -34,6 +34,7 @@
 import {
   RESOURCE_URI_META_KEY,
   RESOURCE_MIME_TYPE,
+  McpUiResourceCsp,
   McpUiResourceMeta,
   McpUiToolMeta,
   McpUiClientCapabilities,
@@ -298,6 +299,54 @@ export function registerAppTool<
  * );
  * ```
  *
+ * @example With stable origin for external API CORS allowlists
+ * ```ts source="./index.examples.ts#registerAppResource_withDomain"
+ * // Computes a stable origin from an MCP server URL for hosting in Claude.
+ * function computeAppDomainForClaude(mcpServerUrl: string): string {
+ *   const hash = crypto
+ *     .createHash("sha256")
+ *     .update(mcpServerUrl)
+ *     .digest("hex")
+ *     .slice(0, 32);
+ *   return `${hash}.claudemcpcontent.com`;
+ * }
+ *
+ * const APP_DOMAIN = computeAppDomainForClaude("https://example.com/mcp");
+ *
+ * registerAppResource(
+ *   server,
+ *   "Company Dashboard",
+ *   "ui://dashboard/view.html",
+ *   {
+ *     description: "Internal dashboard with company data",
+ *   },
+ *   async () => ({
+ *     contents: [
+ *       {
+ *         uri: "ui://dashboard/view.html",
+ *         mimeType: RESOURCE_MIME_TYPE,
+ *         text: dashboardHtml,
+ *         _meta: {
+ *           ui: {
+ *             // CSP: tell browser the app is allowed to make requests
+ *             csp: {
+ *               connectDomains: ["https://api.example.com"],
+ *             },
+ *             // CORS: give app a stable origin for the API server to allowlist
+ *             //
+ *             // (Public APIs that use `Access-Control-Allow-Origin: *` or API
+ *             // key auth don't need this.)
+ *             domain: APP_DOMAIN,
+ *           },
+ *         },
+ *       },
+ *     ],
+ *   }),
+ * );
+ * ```
+ *
+ * @see {@link McpUiResourceMeta `McpUiResourceMeta`} for `_meta.ui` configuration options
+ * @see {@link McpUiResourceCsp `McpUiResourceCsp`} for CSP domain allowlist configuration
  * @see {@link registerAppTool `registerAppTool`} to register tools that reference this resource
  */
 export function registerAppResource(
