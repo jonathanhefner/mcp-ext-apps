@@ -17,6 +17,7 @@ import { z } from "zod";
 import {
   registerAppTool,
   registerAppResource,
+  getUiCapability,
   RESOURCE_MIME_TYPE,
 } from "./index.js";
 
@@ -195,4 +196,42 @@ function registerAppResource_withCsp(
     }),
   );
   //#endregion registerAppResource_withCsp
+}
+
+/**
+ * Example: Check for MCP Apps support in server initialization.
+ */
+function getUiCapability_checkSupport(
+  server: McpServer,
+  weatherHandler: ToolCallback,
+  textWeatherHandler: ToolCallback,
+) {
+  //#region getUiCapability_checkSupport
+  server.server.oninitialized = () => {
+    const clientCapabilities = server.server.getClientCapabilities();
+    const uiCap = getUiCapability(clientCapabilities);
+
+    if (uiCap?.mimeTypes?.includes(RESOURCE_MIME_TYPE)) {
+      // App-enhanced tool
+      registerAppTool(
+        server,
+        "weather",
+        {
+          description: "Get weather information with interactive dashboard",
+          _meta: { ui: { resourceUri: "ui://weather/dashboard" } },
+        },
+        weatherHandler,
+      );
+    } else {
+      // Text-only fallback
+      server.registerTool(
+        "weather",
+        {
+          description: "Get weather information",
+        },
+        textWeatherHandler,
+      );
+    }
+  };
+  //#endregion getUiCapability_checkSupport
 }

@@ -340,21 +340,31 @@ export const EXTENSION_ID = "io.modelcontextprotocol/ui";
  * @returns The MCP Apps capability settings, or `undefined` if not supported
  *
  * @example Check for MCP Apps support in server initialization
- * ```typescript
- * import { getUiCapability, RESOURCE_MIME_TYPE, registerAppTool } from "@modelcontextprotocol/ext-apps/server";
- *
- * server.oninitialized = ({ clientCapabilities }) => {
+ * ```ts source="./index.examples.ts#getUiCapability_checkSupport"
+ * server.server.oninitialized = () => {
+ *   const clientCapabilities = server.server.getClientCapabilities();
  *   const uiCap = getUiCapability(clientCapabilities);
+ *
  *   if (uiCap?.mimeTypes?.includes(RESOURCE_MIME_TYPE)) {
- *     registerAppTool(server, "weather", {
- *       description: "Get weather with interactive dashboard",
- *       _meta: { ui: { resourceUri: "ui://weather/dashboard" } },
- *     }, weatherHandler);
+ *     // App-enhanced tool
+ *     registerAppTool(
+ *       server,
+ *       "weather",
+ *       {
+ *         description: "Get weather information with interactive dashboard",
+ *         _meta: { ui: { resourceUri: "ui://weather/dashboard" } },
+ *       },
+ *       weatherHandler,
+ *     );
  *   } else {
- *     // Register text-only fallback
- *     server.registerTool("weather", {
- *       description: "Get weather as text",
- *     }, textWeatherHandler);
+ *     // Text-only fallback
+ *     server.registerTool(
+ *       "weather",
+ *       {
+ *         description: "Get weather information",
+ *       },
+ *       textWeatherHandler,
+ *     );
  *   }
  * };
  * ```
