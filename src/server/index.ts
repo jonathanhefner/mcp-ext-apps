@@ -45,7 +45,7 @@ import type {
   RegisteredTool,
   ResourceMetadata,
   ToolCallback,
-  ReadResourceCallback,
+  ReadResourceCallback as _ReadResourceCallback,
   RegisteredResource,
 } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type {
@@ -54,12 +54,13 @@ import type {
 } from "@modelcontextprotocol/sdk/server/zod-compat.js";
 import type {
   ClientCapabilities,
+  ReadResourceResult,
   ToolAnnotations,
 } from "@modelcontextprotocol/sdk/types.js";
 
 // Re-exports for convenience
 export { RESOURCE_URI_META_KEY, RESOURCE_MIME_TYPE };
-export type { ResourceMetadata, ToolCallback, ReadResourceCallback };
+export type { ResourceMetadata, ToolCallback };
 
 /**
  * Base tool configuration matching the standard MCP server tool options.
@@ -111,12 +112,19 @@ export interface McpUiAppToolConfig extends ToolConfig {
  * Extends the base MCP SDK `ResourceMetadata` with optional UI metadata
  * for configuring security policies and rendering preferences.
  *
+ * The `_meta.ui` field here is included in the `resources/list` response and serves as
+ * a static default for hosts to review at connection time. When the `resources/read`
+ * content item also includes `_meta.ui`, the content-item value takes precedence.
+ *
  * @see {@link registerAppResource `registerAppResource`} for usage
  */
 export interface McpUiAppResourceConfig extends ResourceMetadata {
   /**
    * Optional UI metadata for the resource.
-   * Used to configure security policies (CSP) and rendering preferences.
+   *
+   * This appears on the resource entry in `resources/list` and acts as a listing-level
+   * fallback. Individual content items returned by `resources/read` may include their
+   * own `_meta.ui` which takes precedence over this value.
    */
   _meta?: {
     /**
@@ -236,6 +244,18 @@ export function registerAppTool<
   return server.registerTool(name, { ...config, _meta: normalizedMeta }, cb);
 }
 
+export type McpUiReadResourceResult = ReadResourceResult & {
+  _meta?: {
+    ui?: McpUiResourceMeta;
+    [key: string]: unknown;
+  };
+};
+export type McpUiReadResourceCallback = (
+  uri: URL,
+  extra: Parameters<_ReadResourceCallback>[1],
+) => McpUiReadResourceResult | Promise<McpUiReadResourceResult>;
+export type ReadResourceCallback = McpUiReadResourceCallback;
+
 /**
  * Register an app resource with the MCP server.
  *
@@ -354,7 +374,7 @@ export function registerAppResource(
   name: string,
   uri: string,
   config: McpUiAppResourceConfig,
-  readCallback: ReadResourceCallback,
+  readCallback: McpUiReadResourceCallback,
 ): RegisteredResource {
   return server.registerResource(
     name,
