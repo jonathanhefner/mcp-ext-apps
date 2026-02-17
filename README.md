@@ -1,7 +1,8 @@
 <!-- LOGO -->
 <h1>
 <p align="center">
-  <img src="media/mcp.svg" alt="MCP Apps SDK" width="128">
+  <img src="media/mcp.svg#gh-light-mode-only" alt="MCP Apps SDK" width="128">
+  <img src="media/mcp-white.svg#gh-dark-mode-only" alt="MCP Apps SDK" width="128">
   <br>MCP Apps SDK
 </h1>
   <p align="center">
