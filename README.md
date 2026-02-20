@@ -34,28 +34,35 @@
 
 ## Table of Contents
 
-- [Specification](#specification)
+- [Build with Agent Skills](#build-with-agent-skills)
 - [Why MCP Apps?](#why-mcp-apps)
 - [How It Works](#how-it-works)
 - [Getting Started](#getting-started)
 - [Using the SDK](#using-the-sdk)
-- [Agent Skills](#agent-skills)
 - [Examples](#examples)
+- [Specification](#specification)
 - [Resources](#resources)
 - [Contributing](#contributing)
 
-## Specification
+## Build with Agent Skills
 
-<div align="center">
+The fastest way to build an MCP App is to let your AI coding agent do it. This repo ships two [Agent Skills](https://agentskills.io/) — install them once, then just ask:
 
-| Version        | Status      | Link                                                                                                                              |
-| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| **2026-01-26** | Stable      | [specification/2026-01-26/apps.mdx](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) |
-| **draft**      | Development | [specification/draft/apps.mdx](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx)           |
+- **"Create an MCP App"** — scaffolds a new MCP App with an interactive UI from scratch
+- **"Migrate from OpenAI Apps SDK"** — converts an existing OpenAI App to use MCP Apps
 
-</div>
+### Install the Skills
 
-MCP Apps are a proposed standard inspired by [MCP-UI](https://mcpui.dev/) and [OpenAI's Apps SDK](https://developers.openai.com/apps-sdk/) to allow MCP Servers to display interactive UI elements in conversational MCP clients / chatbots.
+**Claude Code** — install via the plugin marketplace:
+
+```
+/plugin marketplace add modelcontextprotocol/ext-apps
+/plugin install mcp-apps@modelcontextprotocol-ext-apps
+```
+
+**Other agents** — any AI coding agent that supports [Agent Skills](https://agentskills.io/) can use these skills. See the [agent skills guide](./docs/agent-skills.md) for manual installation instructions.
+
+Once installed, verify by asking your agent _"What skills do you have?"_ — you should see `create-mcp-app` and `migrate-oai-app` in the list. Then just ask it to create or migrate an app and it will guide you through the rest.
 
 ## Why MCP Apps?
 
@@ -94,17 +101,6 @@ The SDK serves three roles: app developers building interactive Views, host deve
 There's no _supported_ host implementation in this repo (beyond the [examples/basic-host](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-host) example).
 
 The [MCP-UI](https://github.com/idosal/mcp-ui) client SDK offers a fully-featured MCP Apps framework used by a few hosts. Clients may choose to use it or roll their own implementation.
-
-## Agent Skills
-
-This repository provides two [Agent Skills](https://agentskills.io/) for building MCP Apps. You can install the skills as a Claude Code plugin:
-
-```
-/plugin marketplace add modelcontextprotocol/ext-apps
-/plugin install mcp-apps@modelcontextprotocol-ext-apps
-```
-
-For more information, including instructions for installing the skills in your favorite AI coding agent, see the [agent skills guide](./docs/agent-skills.md).
 
 ## Examples
 
@@ -545,6 +541,17 @@ Then configure your MCP client to build and run the local server. Replace `~/cod
 </details>
 
 This configuration rebuilds each server on launch, ensuring your local changes are picked up.
+
+## Specification
+
+<div align="center">
+
+| Version        | Status      | Link                                                                                                                              |
+| -------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **2026-01-26** | Stable      | [specification/2026-01-26/apps.mdx](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) |
+| **draft**      | Development | [specification/draft/apps.mdx](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx)           |
+
+</div>
 
 ## Resources
 
