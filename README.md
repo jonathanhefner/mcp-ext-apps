@@ -4,7 +4,7 @@
   <img src="media/mcp-white.svg#gh-dark-mode-only" alt="MCP Apps" width="128">
   <h1>MCP Apps</h1>
   <p>
-    Build interactive UIs for MCP tools — charts, forms, dashboards — that render inline in any compliant chat client.
+    Build interactive UIs for MCP tools — charts, forms, dashboards — that render inline in Claude, ChatGPT and any other compliant chat client.
     <br /><br />
     <a href="#why-mcp-apps">Why</a>
     ·
@@ -80,12 +80,12 @@ it will guide you through the rest.
 ## Supported Clients
 
 <p align="center">
-  <a href="https://claude.ai"><img src="https://img.shields.io/badge/Claude-web-d97706?logo=claude&logoColor=white" alt="Claude"></a>
-  <a href="https://claude.ai/download"><img src="https://img.shields.io/badge/Claude_Desktop-app-d97706?logo=claude&logoColor=white" alt="Claude Desktop"></a>
-  <a href="https://code.visualstudio.com/insiders"><img src="https://img.shields.io/badge/VS_Code-Insiders-007ACC?logo=visualstudiocode&logoColor=white" alt="VS Code Insiders"></a>
-  <a href="https://block.github.io/goose/"><img src="https://img.shields.io/badge/Goose-Block-000000?logo=goose&logoColor=white" alt="Goose"></a>
-  <a href="https://postman.com"><img src="https://img.shields.io/badge/Postman-client-FF6C37?logo=postman&logoColor=white" alt="Postman"></a>
-  <a href="https://www.mcpjam.com/"><img src="https://img.shields.io/badge/MCPJam-client-8B5CF6" alt="MCPJam"></a>
+  <a href="https://developers.openai.com/apps-sdk/mcp-apps-in-chatgpt/"><img src="https://img.shields.io/badge/ChatGPT-docs-74aa9c?logo=openai&logoColor=white" alt="ChatGPT"></a>
+  <a href="https://claude.com/docs/connectors/building/mcp-apps/getting-started"><img src="https://img.shields.io/badge/Claude-docs-d97706?logo=claude&logoColor=white" alt="Claude"></a>
+  <a href="https://code.visualstudio.com/blogs/2026/01/26/mcp-apps-support"><img src="https://img.shields.io/badge/VS_Code-docs-007ACC?logo=visualstudiocode&logoColor=white" alt="VS Code"></a>
+  <a href="https://block.github.io/goose/docs/tutorials/building-mcp-apps/"><img src="https://img.shields.io/badge/Goose-docs-000000?logo=goose&logoColor=white" alt="Goose"></a>
+  <a href="https://learning.postman.com/docs/postman-ai/mcp-requests/interact"><img src="https://img.shields.io/badge/Postman-docs-FF6C37?logo=postman&logoColor=white" alt="Postman"></a>
+  <a href="https://www.mcpjam.com/blog/mcp-apps-example"><img src="https://img.shields.io/badge/MCPJam-docs-8B5CF6" alt="MCPJam"></a>
 </p>
 
 > [!NOTE]
@@ -97,7 +97,7 @@ it will guide you through the rest.
 ## Why MCP Apps?
 
 MCP tools return text and structured data. That works for many cases, but not
-when you need an interactive UI, like a chart, form, or video player.
+when you need an interactive UI, like a chart, form, design canvas or video player.
 
 MCP Apps provide a standardized way to deliver interactive UIs from MCP servers.
 Your UI renders inline in the conversation, in context, in any compliant host.
