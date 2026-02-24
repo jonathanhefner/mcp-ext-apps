@@ -8,9 +8,9 @@
     <br /><br />
     <a href="#why-mcp-apps">Why</a>
     ·
-    <a href="https://modelcontextprotocol.github.io/ext-apps/api/documents/Quickstart.html">Quickstart</a>
+    <a href="https://apps.extensions.modelcontextprotocol.io/api/documents/Quickstart.html">Quickstart</a>
     ·
-    <a href="https://modelcontextprotocol.github.io/ext-apps/api/">API Docs</a>
+    <a href="https://apps.extensions.modelcontextprotocol.io/api/">API Docs</a>
     ·
     <a href="https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx">Spec</a>
     ·
@@ -24,7 +24,7 @@
   <a href="https://www.npmjs.com/package/@modelcontextprotocol/ext-apps"><img src="https://img.shields.io/npm/v/@modelcontextprotocol/ext-apps.svg" alt="npm version"></a>
   <a href="https://www.npmjs.com/package/@modelcontextprotocol/ext-apps"><img src="https://img.shields.io/npm/dm/@modelcontextprotocol/ext-apps.svg" alt="npm downloads"></a>
   <a href="https://github.com/modelcontextprotocol/ext-apps"><img src="https://img.shields.io/github/stars/modelcontextprotocol/ext-apps" alt="GitHub stars"></a>
-  <a href="https://modelcontextprotocol.github.io/ext-apps/api/"><img src="https://img.shields.io/badge/docs-API%20Reference-blue" alt="API Documentation"></a>
+  <a href="https://apps.extensions.modelcontextprotocol.io/api/"><img src="https://img.shields.io/badge/docs-API%20Reference-blue" alt="API Documentation"></a>
 </p>
 
 <p align="center">
@@ -122,7 +122,7 @@ npm install -S @modelcontextprotocol/ext-apps
 ```
 
 **New here?** Start with the
-[Quickstart Guide](https://modelcontextprotocol.github.io/ext-apps/api/documents/Quickstart.html)
+[Quickstart Guide](https://apps.extensions.modelcontextprotocol.io/api/documents/Quickstart.html)
 to build your first MCP App.
 
 ## Using the SDK
@@ -133,10 +133,10 @@ UI metadata.
 
 | Package                                     | Purpose                                                   | Docs                                                                                                                |
 | ------------------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `@modelcontextprotocol/ext-apps`            | Build interactive Views (App class, PostMessageTransport) | [API Docs →](https://modelcontextprotocol.github.io/ext-apps/api/modules/app.html)                                  |
-| `@modelcontextprotocol/ext-apps/react`      | React hooks for Views (useApp, useHostStyles, etc.)       | [API Docs →](https://modelcontextprotocol.github.io/ext-apps/api/modules/_modelcontextprotocol_ext-apps_react.html) |
-| `@modelcontextprotocol/ext-apps/app-bridge` | Embed and communicate with Views in your chat client      | [API Docs →](https://modelcontextprotocol.github.io/ext-apps/api/modules/app-bridge.html)                           |
-| `@modelcontextprotocol/ext-apps/server`     | Register tools and resources on your MCP server           | [API Docs →](https://modelcontextprotocol.github.io/ext-apps/api/modules/server.html)                               |
+| `@modelcontextprotocol/ext-apps`            | Build interactive Views (App class, PostMessageTransport) | [API Docs →](https://apps.extensions.modelcontextprotocol.io/api/modules/app.html)                                  |
+| `@modelcontextprotocol/ext-apps/react`      | React hooks for Views (useApp, useHostStyles, etc.)       | [API Docs →](https://apps.extensions.modelcontextprotocol.io/api/modules/_modelcontextprotocol_ext-apps_react.html) |
+| `@modelcontextprotocol/ext-apps/app-bridge` | Embed and communicate with Views in your chat client      | [API Docs →](https://apps.extensions.modelcontextprotocol.io/api/modules/app-bridge.html)                           |
+| `@modelcontextprotocol/ext-apps/server`     | Register tools and resources on your MCP server           | [API Docs →](https://apps.extensions.modelcontextprotocol.io/api/modules/server.html)                               |
 
 There's no _supported_ host implementation in this repo (beyond the
 [examples/basic-host](https://github.com/modelcontextprotocol/ext-apps/tree/main/examples/basic-host)
@@ -243,8 +243,8 @@ point your client at a local build:
 
 ## Resources
 
-- [Quickstart Guide](https://modelcontextprotocol.github.io/ext-apps/api/documents/Quickstart.html)
-- [API Documentation](https://modelcontextprotocol.github.io/ext-apps/api/)
+- [Quickstart Guide](https://apps.extensions.modelcontextprotocol.io/api/documents/Quickstart.html)
+- [API Documentation](https://apps.extensions.modelcontextprotocol.io/api/)
 - [Specification (2026-01-26)](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx)
   ([Draft](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/draft/apps.mdx))
 - [SEP-1865 Discussion](https://github.com/modelcontextprotocol/modelcontextprotocol/pull/1865)
